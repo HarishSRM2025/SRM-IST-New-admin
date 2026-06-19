@@ -26,6 +26,7 @@ import ResearchStudentMembers from './pages/ResearchStudentMembers';
 import Slider from './pages/Slider';
 import InstituteEventsAndActivities from './pages/InstituteEventsAndActivities';
 import InstituteProgrammes from './pages/InstituteProgrammes';
+import SchoolDivisionProgrammes from './pages/schoolDivisionProgrammes';
 
 function App() {
   return (
@@ -44,10 +45,12 @@ function App() {
           <Route path="schools" element={<Schools />} />
           <Route path="school-divisions" element={<SchoolDivisions />} />
           <Route path="school-divisions/hod-message" element={<DivisionHODMessage />} />
+          <Route path="school-divisions/programmes" element={<SchoolDivisionProgrammes />} />
           <Route path="school-divisions/achievements" element={<DivisionAchievements />} />
           <Route path="school-divisions/events-and-activities" element={<DivisionEventsAndActivities />} />
           <Route path="schools/divisions" element={<SchoolDivisions />} />
           <Route path="schools/divisions/hod-message" element={<DivisionHODMessage />} />
+          <Route path="schools/divisions/programmes" element={<SchoolDivisionProgrammes />} />
           <Route path="schools/divisions/achievements" element={<DivisionAchievements />} />
           <Route path="schools/divisions/events-and-activities" element={<DivisionEventsAndActivities />} />
           <Route path="schools/hod-message" element={<HODMessage />} />
