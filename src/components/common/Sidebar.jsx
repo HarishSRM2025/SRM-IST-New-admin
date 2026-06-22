@@ -24,6 +24,9 @@ const Sidebar = () => {
         <NavLink to="/sliders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Image size={18} /> Sliders</div>
         </NavLink>
+        <NavLink to="/about" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <div className="nav-item-left"><Microscope size={18} /> About</div>
+        </NavLink>
         <NavLink to="/institution" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Building2 size={18} /> Institution</div>
         </NavLink>
@@ -39,6 +42,8 @@ const Sidebar = () => {
         <NavLink to="/research" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Microscope size={18} /> Research</div>
         </NavLink>
+
+       
       </div>
 
       <div className="sidebar-nav-group">

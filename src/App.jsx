@@ -26,6 +26,12 @@ import ResearchStudentMembers from './pages/ResearchStudentMembers';
 import Slider from './pages/Slider';
 import InstituteEventsAndActivities from './pages/InstituteEventsAndActivities';
 import InstituteProgrammes from './pages/InstituteProgrammes';
+import About from './pages/About';
+import AboutRanking from './pages/AboutRanking';
+import LeadersInHome from './pages/LeadersInHome';
+import AcademicHeads from './pages/AcademicHeads';
+import AdministrativeHeads from './pages/AdministrativeHeads';
+import LeadershipMessage from './pages/LeadershipMessage';
 
 function App() {
   return (
@@ -42,6 +48,15 @@ function App() {
           <Route path="institution/programmes" element={<InstituteProgrammes />} />
           <Route path="sliders" element={<Slider />} />
           <Route path="schools" element={<Schools />} />
+
+          {/* About module: Accreditation | Ranking | Leaders In Home | Academic Heads | Administrative Heads | Leadership Message */}
+          <Route path="about" element={<About />} />
+          <Route path="about/ranking" element={<AboutRanking />} />
+          <Route path="about/leaders-in-home" element={<LeadersInHome />} />
+          <Route path="about/academic-heads" element={<AcademicHeads />} />
+          <Route path="about/administrative-heads" element={<AdministrativeHeads />} />
+          <Route path="about/leadership" element={<LeadershipMessage />} />
+
           <Route path="school-divisions" element={<SchoolDivisions />} />
           <Route path="school-divisions/hod-message" element={<DivisionHODMessage />} />
           <Route path="school-divisions/achievements" element={<DivisionAchievements />} />
