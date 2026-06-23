@@ -59,10 +59,12 @@ function App() {
 
           <Route path="school-divisions" element={<SchoolDivisions />} />
           <Route path="school-divisions/hod-message" element={<DivisionHODMessage />} />
+          <Route path="school-divisions/programmes" element={<SchoolDivisionProgrammes />} />
           <Route path="school-divisions/achievements" element={<DivisionAchievements />} />
           <Route path="school-divisions/events-and-activities" element={<DivisionEventsAndActivities />} />
           <Route path="schools/divisions" element={<SchoolDivisions />} />
           <Route path="schools/divisions/hod-message" element={<DivisionHODMessage />} />
+          <Route path="schools/divisions/programmes" element={<SchoolDivisionProgrammes />} />
           <Route path="schools/divisions/achievements" element={<DivisionAchievements />} />
           <Route path="schools/divisions/events-and-activities" element={<DivisionEventsAndActivities />} />
           <Route path="schools/hod-message" element={<HODMessage />} />

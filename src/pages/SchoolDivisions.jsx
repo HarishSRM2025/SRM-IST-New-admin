@@ -8,6 +8,7 @@ import InstitutionDeleteModal from '../components/institution/InstitutionDeleteM
 const divisionTabs = [
   { label: 'Division Details', path: '/school-divisions', end: true },
   { label: 'HOD Message', path: '/school-divisions/hod-message', end: false },
+  { label: 'Programmes', path: '/school-divisions/programmes', end: false },
   { label: 'Achievements', path: '/school-divisions/achievements', end: false },
   { label: 'Events & Activities', path: '/school-divisions/events-and-activities', end: false }
 ];
