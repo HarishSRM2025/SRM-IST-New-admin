@@ -11,6 +11,14 @@ const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handle
     return school ? school.name : 'Unknown School';
   };
 
+  const getDivisionName = (schoolId, divisionId) => {
+    if (!divisionId) return '—';
+    const school = schoolsList.find(s => s._id === schoolId);
+    if (!school || !school.divisions) return '—';
+    const division = school.divisions.find(d => d._id === divisionId);
+    return division ? division.name : '—';
+  };
+
   return (
     <div className="table-container animate-fade-in">
       {fetching ? (
@@ -22,12 +30,13 @@ const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handle
           <thead>
             <tr>
               <th style={{ width: '5%' }}>Image</th>
-              <th style={{ width: '18%' }}>Name</th>
-              <th style={{ width: '18%' }}>Email</th>
-              <th style={{ width: '12%' }}>Gender</th>
-              <th style={{ width: '15%' }}>School</th>
-              <th style={{ width: '12%' }}>Designation</th>
-              <th style={{ width: '8%' }}>Exp (yrs)</th>
+              <th style={{ width: '15%' }}>Name</th>
+              <th style={{ width: '15%' }}>Email</th>
+              <th style={{ width: '8%' }}>Gender</th>
+              <th style={{ width: '14%' }}>School</th>
+              <th style={{ width: '14%' }}>Division</th>
+              <th style={{ width: '10%' }}>Designation</th>
+              <th style={{ width: '7%' }}>Exp (yrs)</th>
               <th style={{ width: '12%', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
@@ -65,6 +74,7 @@ const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handle
                     </span>
                   </td>
                   <td>{getSchoolName(item.school)}</td>
+                  <td>{getDivisionName(item.school, item.schoolDivision)}</td>
                   <td>{item.designation}</td>
                   <td style={{ textAlign: 'center' }}>{item.facultyExperience}</td>
                   <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
@@ -93,7 +103,7 @@ const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handle
               ))
             ) : (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-gray)' }}>
+                <td colSpan="9" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-gray)' }}>
                   No faculty members available. Click "New Faculty" to add one.
                 </td>
               </tr>

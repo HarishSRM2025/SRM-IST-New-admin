@@ -147,7 +147,11 @@ const FacultyFormModal = ({
                 name="school"
                 className="form-input"
                 value={formData.school}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  // Reset schoolDivision when school changes
+                  handleChange({ target: { name: 'schoolDivision', value: '' } });
+                }}
                 required
               >
                 <option value="">Select a School</option>
@@ -157,6 +161,32 @@ const FacultyFormModal = ({
               </select>
             </div>
           </div>
+
+          {(() => {
+            const selectedSchool = formData.school ? schoolsList.find(s => s._id === formData.school) : null;
+            const availableDivisions = selectedSchool?.divisions || [];
+            console.log('[DEBUG MODAL] formData.school:', formData.school, '| selectedSchool:', selectedSchool?.name, '| divisions:', availableDivisions.length, availableDivisions.map(d => d.name));
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="schoolDivision">School Division / Department</label>
+                  <select
+                    id="schoolDivision"
+                    name="schoolDivision"
+                    className="form-input"
+                    value={formData.schoolDivision}
+                    onChange={handleChange}
+                    disabled={!formData.school}
+                  >
+                    <option value="">{formData.school ? 'Select a Division' : '-- Select a School first --'}</option>
+                    {availableDivisions.map(d => (
+                      <option key={d._id} value={d._id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            );
+          })()}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="form-group">
