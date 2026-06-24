@@ -32,6 +32,7 @@ import LeadersInHome from './pages/LeadersInHome';
 import AcademicHeads from './pages/AcademicHeads';
 import AdministrativeHeads from './pages/AdministrativeHeads';
 import LeadershipMessage from './pages/LeadershipMessage';
+import SchoolDivisionProgrammes from './pages/schoolDivisionProgrammes';
 
 function App() {
   return (
@@ -56,7 +57,7 @@ function App() {
           <Route path="about/academic-heads" element={<AcademicHeads />} />
           <Route path="about/administrative-heads" element={<AdministrativeHeads />} />
           <Route path="about/leadership" element={<LeadershipMessage />} />
-
+          
           <Route path="school-divisions" element={<SchoolDivisions />} />
           <Route path="school-divisions/hod-message" element={<DivisionHODMessage />} />
           <Route path="school-divisions/programmes" element={<SchoolDivisionProgrammes />} />
