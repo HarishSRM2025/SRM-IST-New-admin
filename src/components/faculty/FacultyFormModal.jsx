@@ -20,7 +20,6 @@ const FacultyFormModal = ({
 }) => {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
-
   // Reset preview when modal closes
   useEffect(() => {
     if (!isModalOpen) {
@@ -45,20 +44,6 @@ const FacultyFormModal = ({
   const closeAndReset = () => {
     setPreviewImage(null);
     handleCloseModal();
-  };
-
-  const handleAddSubject = () => {
-    setSubjects([...subjects, { subject: '' }]);
-  };
-
-  const handleSubjectChange = (index, value) => {
-    const updated = [...subjects];
-    updated[index] = { subject: value };
-    setSubjects(updated);
-  };
-
-  const handleRemoveSubject = (index) => {
-    setSubjects(subjects.filter((_, i) => i !== index));
   };
 
   const handleAddEducation = () => {
@@ -255,7 +240,7 @@ const FacultyFormModal = ({
           </div>
 
           {/* Subjects */}
-          <div className="form-group">
+          {/* <div className="form-group">
             <label className="form-label">Subjects</label>
             {subjects.map((subj, idx) => (
               <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
@@ -286,6 +271,25 @@ const FacultyFormModal = ({
             >
               <Plus size={14} /> Add Subject
             </button>
+          </div> */}
+
+          <div className="form-group">
+            <label className="form-label">Subjects</label>
+            <textarea
+              className="form-input"
+              rows="4"
+              placeholder="Enter subjects separated by commas"
+              value={Array.isArray(subjects) ? subjects.map(s => typeof s === 'string' ? s : s.subject).join(", ") : ''}
+              onChange={(e) =>
+                setSubjects(
+                  e.target.value
+                    .split(",")
+                    .map(subject => subject.trim())
+                    .filter(Boolean)
+                )
+              }
+              required
+            />
           </div>
 
           {/* Area of Interest */}
