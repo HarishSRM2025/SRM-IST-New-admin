@@ -33,6 +33,7 @@ import AcademicHeads from './pages/AcademicHeads';
 import AdministrativeHeads from './pages/AdministrativeHeads';
 import LeadershipMessage from './pages/LeadershipMessage';
 import SchoolDivisionProgrammes from './pages/schoolDivisionProgrammes';
+import StudentTestimonials from './pages/StudentTestimonials';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           <Route path="institution/events-and-activities" element={<InstituteEventsAndActivities />} />
           <Route path="institution/programmes" element={<InstituteProgrammes />} />
           <Route path="sliders" element={<Slider />} />
+          <Route path="student-testimonials" element={<StudentTestimonials />} />
           <Route path="schools" element={<Schools />} />
 
           {/* About module: Accreditation | Ranking | Leaders In Home | Academic Heads | Administrative Heads | Leadership Message */}

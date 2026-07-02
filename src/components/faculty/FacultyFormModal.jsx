@@ -11,6 +11,7 @@ const FacultyFormModal = ({
   loading,
   message,
   schoolsList,
+  institutionsList = [],
   imageFile,
   setImageFile,
   subjects,
@@ -20,12 +21,30 @@ const FacultyFormModal = ({
 }) => {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
-  // Reset preview when modal closes
+  const [affiliationType, setAffiliationType] = useState('school');
+
+  // Reset preview and set affiliationType when modal opens/closes
   useEffect(() => {
     if (!isModalOpen) {
       setPreviewImage(null);
+    } else {
+      if (formData.institution) {
+        setAffiliationType('institution');
+      } else {
+        setAffiliationType('school');
+      }
     }
-  }, [isModalOpen]);
+  }, [formData.institution, isModalOpen]);
+
+  const handleAffiliationTypeChange = (type) => {
+    setAffiliationType(type);
+    if (type === 'institution') {
+      handleChange({ target: { name: 'school', value: '' } });
+      handleChange({ target: { name: 'schoolDivision', value: '' } });
+    } else {
+      handleChange({ target: { name: 'institution', value: '' } });
+    }
+  };
 
   if (!isModalOpen) return null;
 
@@ -126,28 +145,61 @@ const FacultyFormModal = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="school">School</label>
+              <label className="form-label" htmlFor="affiliationType">Affiliation Type</label>
               <select
-                id="school"
-                name="school"
+                id="affiliationType"
                 className="form-input"
-                value={formData.school}
-                onChange={(e) => {
-                  handleChange(e);
-                  // Reset schoolDivision when school changes
-                  handleChange({ target: { name: 'schoolDivision', value: '' } });
-                }}
-                required
+                value={affiliationType}
+                onChange={(e) => handleAffiliationTypeChange(e.target.value)}
               >
-                <option value="">Select a School</option>
-                {schoolsList.map(s => (
-                  <option key={s._id} value={s._id}>{s.name}</option>
-                ))}
+                <option value="school">School / Department</option>
+                <option value="institution">Institution</option>
               </select>
             </div>
           </div>
 
-          {(() => {
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {affiliationType === 'institution' ? (
+              <div className="form-group">
+                <label className="form-label" htmlFor="institution">Institution</label>
+                <select
+                  id="institution"
+                  name="institution"
+                  className="form-input"
+                  value={formData.institution || ''}
+                  onChange={handleChange}
+                  required={affiliationType === 'institution'}
+                >
+                  <option value="">Select an Institution</option>
+                  {institutionsList.map(inst => (
+                    <option key={inst._id} value={inst._id}>{inst.name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="form-group">
+                <label className="form-label" htmlFor="school">School</label>
+                <select
+                  id="school"
+                  name="school"
+                  className="form-input"
+                  value={formData.school || ''}
+                  onChange={(e) => {
+                    handleChange(e);
+                    handleChange({ target: { name: 'schoolDivision', value: '' } });
+                  }}
+                  required={affiliationType === 'school'}
+                >
+                  <option value="">Select a School</option>
+                  {schoolsList.map(s => (
+                    <option key={s._id} value={s._id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {affiliationType === 'school' && (() => {
             const selectedSchool = formData.school ? schoolsList.find(s => s._id === formData.school) : null;
             const availableDivisions = selectedSchool?.divisions || [];
             console.log('[DEBUG MODAL] formData.school:', formData.school, '| selectedSchool:', selectedSchool?.name, '| divisions:', availableDivisions.length, availableDivisions.map(d => d.name));
@@ -159,7 +211,7 @@ const FacultyFormModal = ({
                     id="schoolDivision"
                     name="schoolDivision"
                     className="form-input"
-                    value={formData.schoolDivision}
+                    value={formData.schoolDivision || ''}
                     onChange={handleChange}
                     disabled={!formData.school}
                   >

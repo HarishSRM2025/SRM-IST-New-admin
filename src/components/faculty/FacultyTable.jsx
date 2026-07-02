@@ -4,11 +4,18 @@ import Pagination from '../common/Pagination';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
-const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handleDelete, pagination }) => {
+const FacultyTable = ({ fetching, dataList, schoolsList, institutionsList = [], handleOpenModal, handleDelete, pagination }) => {
 
   const getSchoolName = (id) => {
+    if (!id) return '—';
     const school = schoolsList.find(s => s._id === id);
     return school ? school.name : 'Unknown School';
+  };
+
+  const getInstitutionName = (id) => {
+    if (!id) return '—';
+    const inst = institutionsList.find(i => i._id === id);
+    return inst ? inst.name : '—';
   };
 
   const getDivisionName = (schoolId, divisionId) => {
@@ -33,7 +40,7 @@ const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handle
               <th style={{ width: '15%' }}>Name</th>
               <th style={{ width: '15%' }}>Email</th>
               <th style={{ width: '8%' }}>Gender</th>
-              <th style={{ width: '14%' }}>School</th>
+              <th style={{ width: '14%' }}>School / Institution</th>
               <th style={{ width: '14%' }}>Division</th>
               <th style={{ width: '10%' }}>Designation</th>
               <th style={{ width: '7%' }}>Exp (yrs)</th>
@@ -73,8 +80,8 @@ const FacultyTable = ({ fetching, dataList, schoolsList, handleOpenModal, handle
                       {item.facultyGender}
                     </span>
                   </td>
-                  <td>{getSchoolName(item.school)}</td>
-                  <td>{getDivisionName(item.school, item.schoolDivision)}</td>
+                  <td>{item.institution ? getInstitutionName(item.institution) : getSchoolName(item.school)}</td>
+                  <td>{item.institution ? '—' : getDivisionName(item.school, item.schoolDivision)}</td>
                   <td>{item.designation}</td>
                   <td style={{ textAlign: 'center' }}>{item.facultyExperience}</td>
                   <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>

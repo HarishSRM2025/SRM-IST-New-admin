@@ -14,10 +14,12 @@ const facultyTabs = [
 const Faculty = () => {
   const [dataList, setDataList] = useState([]);
   const [schoolsList, setSchoolsList] = useState([]);
+  const [institutionsList, setInstitutionsList] = useState([]);
   const [formData, setFormData] = useState({
     facultyName: '',
     facultyEmail: '',
     facultyGender: '',
+    institution: '',
     school: '',
     schoolDivision: '',
     designation: '',
@@ -40,9 +42,10 @@ const Faculty = () => {
   const fetchData = async () => {
     setFetching(true);
     try {
-      const [schoolsRes, divisionsRes] = await Promise.all([
+      const [schoolsRes, divisionsRes, institutionsRes] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_URL}/schools/getall`),
-        fetch(`${import.meta.env.VITE_API_URL}/school-division/getall`)
+        fetch(`${import.meta.env.VITE_API_URL}/school-division/getall`),
+        fetch(`${import.meta.env.VITE_API_URL}/institution/getall`)
       ]);
 
       let schools = [];
@@ -74,7 +77,7 @@ const Faculty = () => {
         }
       }
 
-      // Combine School + Division
+      // Combined School + Division
       const combinedList = schools.map((school) => {
         const schoolDivisions = divisions.filter(
           (division) => {
@@ -91,7 +94,19 @@ const Faculty = () => {
         };
       });
 
+      // Institution Data
+      let institutions = [];
+      if (institutionsRes.ok) {
+        const instJson = await institutionsRes.json();
+        if (instJson.success && instJson.data) {
+          institutions = Array.isArray(instJson.data) ? instJson.data : [instJson.data];
+        } else if (Array.isArray(instJson)) {
+          institutions = instJson;
+        }
+      }
+
       setSchoolsList(combinedList);
+      setInstitutionsList(institutions);
       console.log('[DEBUG] divisions fetched:', divisions.length, divisions.map(d => ({ _id: d._id, schoolId: d.schoolId, name: d.name })));
       console.log('[DEBUG] schools fetched:', schools.length, schools.map(s => ({ _id: s._id, name: s.name })));
       console.log('[DEBUG] combinedList:', combinedList.map(s => ({ _id: s._id, name: s.name, divCount: s.divisions?.length, divs: s.divisions?.map(d => d.name) })));
@@ -135,6 +150,7 @@ const Faculty = () => {
       facultyName: '',
       facultyEmail: '',
       facultyGender: '',
+      institution: '',
       school: '',
       schoolDivision: '',
       designation: '',
@@ -152,6 +168,7 @@ const Faculty = () => {
         facultyName: item.facultyName || '',
         facultyEmail: item.facultyEmail || '',
         facultyGender: item.facultyGender || '',
+        institution: item.institution || '',
         school: item.school || '',
         schoolDivision: item.schoolDivision || '',
         designation: item.designation || '',
@@ -196,10 +213,9 @@ const Faculty = () => {
       body.append('facultyName', formData.facultyName);
       body.append('facultyEmail', formData.facultyEmail);
       body.append('facultyGender', formData.facultyGender);
-      body.append('school', formData.school);
-      if (formData.schoolDivision) {
-        body.append('schoolDivision', formData.schoolDivision);
-      }
+      body.append('institution', formData.institution || '');
+      body.append('school', formData.school || '');
+      body.append('schoolDivision', formData.schoolDivision || '');
       body.append('designation', formData.designation);
       body.append('facultyExperience', formData.facultyExperience);
       // Convert subjects to object format for backend
@@ -260,11 +276,13 @@ const Faculty = () => {
 
   const filteredDataList = dataList.filter(item => {
     const schoolName = schoolsList.find(s => s._id === item.school)?.name || '';
+    const instName = institutionsList.find(i => i._id === item.institution)?.name || '';
     return (
       item.facultyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.facultyEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      schoolName.toLowerCase().includes(searchQuery.toLowerCase())
+      schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      instName.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
 
@@ -295,6 +313,7 @@ const Faculty = () => {
         fetching={fetching}
         dataList={currentData}
         schoolsList={schoolsList}
+        institutionsList={institutionsList}
         handleOpenModal={handleOpenModal}
         handleDelete={handleDelete}
         pagination={{
@@ -315,6 +334,7 @@ const Faculty = () => {
         loading={loading}
         message={message}
         schoolsList={schoolsList}
+        institutionsList={institutionsList}
         imageFile={imageFile}
         setImageFile={setImageFile}
         subjects={subjects}
