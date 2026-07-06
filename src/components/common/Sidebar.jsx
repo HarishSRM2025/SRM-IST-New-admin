@@ -6,6 +6,11 @@ const Sidebar = () => {
   const isSchoolRoute = location.pathname.startsWith('/schools') && !location.pathname.startsWith('/schools/divisions');
   const isDivisionRoute = location.pathname.startsWith('/school-divisions') || location.pathname.startsWith('/schools/divisions');
 
+  const userData = JSON.parse(localStorage.getItem('IST_USER_DATA') || sessionStorage.getItem('IST_USER_DATA') || '{}');
+
+  const userRole = userData?.user?.role || 'user';
+ // Debugging line to check the user role
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -17,9 +22,14 @@ const Sidebar = () => {
       
       <div className="sidebar-nav-group">
         <div className="sidebar-nav-label">Main</div>
+
+        
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} end>
           <div className="nav-item-left"><LayoutDashboard size={18} /> Dashboard</div>
         </NavLink>
+        {userRole === 'superadmin' || userRole === 'admin' ? <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <div className="nav-item-left"><Users size={18} /> Faculty</div>
+        </NavLink> : null}
         <NavLink to="/sliders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Image size={18} /> Sliders</div>
         </NavLink>
@@ -41,22 +51,20 @@ const Sidebar = () => {
         <NavLink to="/school-divisions" className={() => `nav-item ${isDivisionRoute ? 'active' : ''}`}>
           <div className="nav-item-left"><GitBranch size={18} /> School Divisions</div>
         </NavLink>
-        <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <div className="nav-item-left"><Users size={18} /> Faculty</div>
-        </NavLink>
         <NavLink to="/research" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Microscope size={18} /> Research</div>
         </NavLink>
 
        
       </div>
-
-      <div className="sidebar-nav-group">
-        <div className="sidebar-nav-label">System</div>
-        <NavLink to="/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <div className="nav-item-left"><UserCog size={18} /> Users</div>
-        </NavLink>
-      </div>
+      {userRole === 'superadmin' &&
+        <div className="sidebar-nav-group">
+          <div className="sidebar-nav-label">System</div>
+          <NavLink to="/users" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <div className="nav-item-left"><UserCog size={18} /> Users</div>
+          </NavLink>
+        </div>
+      }
     </aside>
   );
 };
