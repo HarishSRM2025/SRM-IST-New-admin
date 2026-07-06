@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import Institution from './pages/Institution';
@@ -34,12 +34,117 @@ import AdministrativeHeads from './pages/AdministrativeHeads';
 import LeadershipMessage from './pages/LeadershipMessage';
 import SchoolDivisionProgrammes from './pages/schoolDivisionProgrammes';
 import StudentTestimonials from './pages/StudentTestimonials';
+import UserManagement from './pages/UserManagement';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import { signin, signup } from './api/auth';
+
+const AUTH_STORAGE_KEY = 'srm_admin_session';
+const USER_DATA_STORAGE_KEY = 'IST_USER_DATA';
+
+function getStoredSession() {
+  const savedSession = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
+
+  if (!savedSession) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(savedSession);
+  } catch {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    return null;
+  }
+}
+
+function ProtectedAdmin({ isAuthenticated, onLogout, session }) {
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  return <AdminLayout onLogout={onLogout} session={session} />;
+}
+
+function SignInRoute({ isAuthenticated, onAuthSuccess }) {
+  const navigate = useNavigate();
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleSignIn = async (formData) => {
+    const result = await signin(formData);
+    const storage = formData.remember ? localStorage : sessionStorage;
+    const otherStorage = formData.remember ? sessionStorage : localStorage;
+    const session = {
+      id: result.user?._id,
+      username: result.user?.username,
+      email: result.user?.email || formData.email,
+      role: result.user?.role,
+      message: result.message,
+      signedInAt: new Date().toISOString(),
+    };
+
+    otherStorage.removeItem(AUTH_STORAGE_KEY);
+    storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+    onAuthSuccess(session);
+    navigate('/', { replace: true });
+  };
+
+  return (
+    <SignIn
+      onSignIn={handleSignIn}
+      onNavigateToSignUp={() => navigate('/signup')}
+    />
+  );
+}
+
+function SignUpRoute({ isAuthenticated }) {
+  const navigate = useNavigate();
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleSignUp = async (formData) => {
+    await signup(formData);
+    navigate('/signin', { replace: true });
+  };
+
+  return (
+    <SignUp
+      onSignUp={handleSignUp}
+      onNavigateToSignIn={() => navigate('/signin')}
+    />
+  );
+}
 
 function App() {
+  const [session, setSession] = useState(() => getStoredSession());
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(USER_DATA_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    setSession(null);
+  };
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AdminLayout />}>
+        <Route
+          path="/signin"
+          element={<SignInRoute isAuthenticated={Boolean(session)} onAuthSuccess={setSession} />}
+        />
+        <Route
+          path="/signup"
+          element={<SignUpRoute isAuthenticated={Boolean(session)} />}
+        />
+        <Route
+          path="/"
+          element={<ProtectedAdmin isAuthenticated={Boolean(session)} onLogout={handleLogout} session={session} />}
+        >
           <Route index element={<Dashboard />} />
           <Route path="institution" element={<Institution />} />
           <Route path="institution/stats" element={<InstituteStats />} />
@@ -82,7 +187,9 @@ function App() {
           <Route path="research" element={<ResearchCenter />} />
           <Route path="research/faculty-members" element={<ResearchFacultyMembers />} />
           <Route path="research/student-members" element={<ResearchStudentMembers />} />
+          <Route path="users" element={<UserManagement />} />
         </Route>
+        <Route path="*" element={<Navigate to={session ? "/" : "/signin"} replace />} />
       </Routes>
     </Router>
   );
