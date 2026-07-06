@@ -35,6 +35,7 @@ import LeadershipMessage from './pages/LeadershipMessage';
 import SchoolDivisionProgrammes from './pages/schoolDivisionProgrammes';
 import StudentTestimonials from './pages/StudentTestimonials';
 import UserManagement from './pages/UserManagement';
+import CareersManagement from './pages/CareersManagement';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import { signin, signup } from './api/auth';
@@ -155,6 +156,7 @@ function App() {
           <Route path="institution/programmes" element={<InstituteProgrammes />} />
           <Route path="sliders" element={<Slider />} />
           <Route path="student-testimonials" element={<StudentTestimonials />} />
+          <Route path="careers" element={<CareersManagement />} />
           <Route path="schools" element={<Schools />} />
 
           {/* About module: Accreditation | Ranking | Leaders In Home | Academic Heads | Administrative Heads | Leadership Message */}

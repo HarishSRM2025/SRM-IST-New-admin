@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building2, UserCog, GraduationCap, Users, Microscope, GitBranch, Image, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Building2, UserCog, GraduationCap, Users, Microscope, GitBranch, Image, MessageSquare, BriefcaseBusiness } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -25,6 +25,9 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to="/student-testimonials" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><MessageSquare size={18} /> Testimonials</div>
+        </NavLink>
+        <NavLink to="/careers" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <div className="nav-item-left"><BriefcaseBusiness size={18} /> Careers</div>
         </NavLink>
         <NavLink to="/about" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Microscope size={18} /> About</div>
