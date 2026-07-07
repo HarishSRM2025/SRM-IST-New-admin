@@ -30,6 +30,7 @@ const Sidebar = () => {
         {userRole === 'superadmin' || userRole === 'admin' ? <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Users size={18} /> Faculty</div>
         </NavLink> : null}
+        
         <NavLink to="/sliders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Image size={18} /> Sliders</div>
         </NavLink>
