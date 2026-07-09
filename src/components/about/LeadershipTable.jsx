@@ -29,10 +29,10 @@ const LeadershipTable = ({
   // category context (e.g. inside the "Academic Heads" tab).
   showCategoryColumn = true
 }) => {
-
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';  
   const getImageUrl = (imagePath) => {
     const fileName = imagePath.split('\\').pop().split('/').pop();
-    return `http://localhost:3000/public/uploads/${fileName}`;
+    return `${API_BASE}/public/uploads/${fileName}`;
   };
 
   return (

@@ -27,9 +27,9 @@ const Sidebar = () => {
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} end>
           <div className="nav-item-left"><LayoutDashboard size={18} /> Dashboard</div>
         </NavLink>
-        {userRole === 'superadmin' || userRole === 'admin' ? <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Users size={18} /> Faculty</div>
-        </NavLink> : null}
+        </NavLink>
         
         <NavLink to="/sliders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Image size={18} /> Sliders</div>
