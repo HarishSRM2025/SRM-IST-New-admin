@@ -8,6 +8,8 @@ const DeanMessageTable = ({ fetching, dataList, institutionsList, handleOpenModa
     const inst = institutionsList.find(i => i._id === id);
     return inst ? inst.name : 'Unknown Institution';
   };
+  
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';  
 
   return (
     <div className="table-container animate-fade-in">
@@ -33,7 +35,7 @@ const DeanMessageTable = ({ fetching, dataList, institutionsList, handleOpenModa
                   <td>
                     {item.deanImage ? (
                       <img 
-                        src={`http://localhost:3000/public/uploads/${item.deanImage}`}
+                        src={`${API_BASE}/public/uploads/${item.deanImage}`}
                         alt={item.deanName} 
                         style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '50%', border: '1px solid var(--border-color)' }}
                       />

@@ -27,7 +27,7 @@ const GalleryResourceTable = ({ fetching, dataList, institutionsList, handleOpen
   const getAssetUrl = (fileNameOrPath) => {
     if (!fileNameOrPath) return '';
     let clean = fileNameOrPath.replace(/^(public[/\\]uploads[/\\])/i, '');
-    return `http://localhost:3000/public/uploads/${clean.replace(/\\/g, '/')}`;
+    return `${API_BASE}/public/uploads/${clean.replace(/\\/g, '/')}`;
   };
 
   const renderMediaPreview = (item) => {

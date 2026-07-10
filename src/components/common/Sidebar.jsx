@@ -6,9 +6,11 @@ const Sidebar = () => {
   const isSchoolRoute = location.pathname.startsWith('/schools') && !location.pathname.startsWith('/schools/divisions');
   const isDivisionRoute = location.pathname.startsWith('/school-divisions') || location.pathname.startsWith('/schools/divisions');
 
-  const userData = JSON.parse(localStorage.getItem('IST_USER_DATA') || sessionStorage.getItem('IST_USER_DATA') || '{}');
-
-  const userRole = userData?.user?.role || 'user';
+  const userData = JSON.parse(sessionStorage.getItem('srm_admin_session'));
+  
+  const userRole = userData?.role;
+  console.log(userData);
+  
  // Debugging line to check the user role
 
   return (
@@ -27,9 +29,10 @@ const Sidebar = () => {
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} end>
           <div className="nav-item-left"><LayoutDashboard size={18} /> Dashboard</div>
         </NavLink>
-        <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        {userRole === 'superadmin' && <NavLink to="/faculty" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Users size={18} /> Faculty</div>
-        </NavLink>
+        </NavLink>}
+        
         
         <NavLink to="/sliders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-left"><Image size={18} /> Sliders</div>

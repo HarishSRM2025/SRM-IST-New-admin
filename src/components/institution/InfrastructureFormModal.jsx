@@ -17,6 +17,7 @@ const InfrastructureFormModal = ({
   const [previewImage, setPreviewImage] = useState(null);
 
   if (!isModalOpen) return null;
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'; 
 
   const onFileChange = (e) => {
     handleFileChange(e);
@@ -87,7 +88,7 @@ const InfrastructureFormModal = ({
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {(previewImage || formData.existingImage) && (
                 <img 
-                  src={previewImage || `http://localhost:3000/public/uploads/${formData.existingImage}`} 
+                  src={previewImage || `${API_BASE}/public/uploads/${formData.existingImage}`} 
                   alt="Preview" 
                   style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                 />

@@ -9,7 +9,7 @@ const InfrastructureTable = ({ fetching, dataList, institutionsList, handleOpenM
     const inst = institutionsList.find(i => i._id === institutionId);
     return inst ? inst.name : 'Unknown Institution';
   };
-
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'; 
   return (
     <div className="table-container animate-fade-in">
       {fetching ? (
@@ -35,7 +35,7 @@ const InfrastructureTable = ({ fetching, dataList, institutionsList, handleOpenM
                   <td>
                     {item.infraImage ? (
                       <img 
-                        src={`http://localhost:3000/public/uploads/${item.infraImage}`}
+                        src={`${API_BASE}/public/uploads/${item.infraImage}`}
                         alt={item.infraName} 
                         style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                       />

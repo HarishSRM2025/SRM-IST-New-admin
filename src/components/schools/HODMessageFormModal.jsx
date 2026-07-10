@@ -17,7 +17,7 @@ const HODMessageFormModal = ({
 }) => {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
-
+  const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'; 
   if (!isModalOpen) return null;
 
   const onFileChange = (e) => {
@@ -38,7 +38,7 @@ const HODMessageFormModal = ({
 
   const getImageUrl = (imagePath) => {
     const fileName = imagePath.split('\\').pop().split('/').pop();
-    return `http://localhost:3000/public/uploads/${fileName}`;
+    return `${API_BASE}/public/uploads/${fileName}`;
   };
 
   return createPortal(

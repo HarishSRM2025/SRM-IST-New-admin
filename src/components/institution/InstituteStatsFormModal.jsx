@@ -20,7 +20,6 @@ const InstituteStatsFormModal = ({
   const statsRows = formData.instituteStats?.length
     ? formData.instituteStats
     : [{ name: '', value: '' }];
-
   return createPortal(
     <div className="modal-overlay">
       <div className="modal-content">

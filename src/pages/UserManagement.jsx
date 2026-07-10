@@ -174,6 +174,7 @@ export default function UserManagement() {
                         <Shield size={13} /> {user.role || 'user'}
                       </span>
                     </td>
+
                     <td>{formatDate(user.createdAt)}</td>
                     <td style={{ textAlign: 'right' }}>
                       <button className="btn btn-outline" onClick={() => openEditModal(user)}>

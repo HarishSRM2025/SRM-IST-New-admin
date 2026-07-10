@@ -17,7 +17,6 @@ const StatCard = ({ title, value, icon: Icon, iconColor, iconBg, trend, trendLab
     </div>
   </div>
 );
-
 const Dashboard = () => {
   return (
     <div>
