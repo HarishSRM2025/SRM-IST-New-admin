@@ -1,7 +1,7 @@
 import React from 'react';
 import { Loader2, Edit2, Trash2, Video, FileText, Image as ImageIcon } from 'lucide-react';
 import Pagination from '../common/Pagination';
-
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 const GalleryResourceTable = ({ fetching, dataList, institutionsList, handleOpenModal, handleDelete, pagination }) => {
 
   const getInstitutionName = (id) => {
@@ -27,7 +27,7 @@ const GalleryResourceTable = ({ fetching, dataList, institutionsList, handleOpen
   const getAssetUrl = (fileNameOrPath) => {
     if (!fileNameOrPath) return '';
     let clean = fileNameOrPath.replace(/^(public[/\\]uploads[/\\])/i, '');
-    return `${API_BASE}/public/uploads/${clean.replace(/\\/g, '/')}`;
+    return `${API_BASE_URL}/public/uploads/${clean.replace(/\\/g, '/')}`;
   };
 
   const renderMediaPreview = (item) => {
