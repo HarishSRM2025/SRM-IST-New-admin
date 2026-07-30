@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Save, Loader2, X, Upload } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'; 
+
 const GalleryResourceFormModal = ({
   isModalOpen,
   handleCloseModal,
