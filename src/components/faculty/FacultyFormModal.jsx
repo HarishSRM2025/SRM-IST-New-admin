@@ -262,7 +262,11 @@ const FacultyFormModal = ({
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {(previewImage || formData.existingImage) && (
                 <img
-                  src={previewImage || `${import.meta.env.VITE_API_URL.replace('/api', '')}/${formData.existingImage.replace(/\\/g, '/')}`}
+                  src={previewImage || (formData.existingImage.startsWith('http')
+                    ? formData.existingImage
+                    : `${import.meta.env.VITE_API_URL.replace('/api', '')}/${formData.existingImage.replace(/\\/g, '/').startsWith('public/')
+                        ? formData.existingImage.replace(/\\/g, '/')
+                        : 'public/uploads/' + formData.existingImage.replace(/\\/g, '/')}`)}
                   alt="Preview"
                   style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                 />
