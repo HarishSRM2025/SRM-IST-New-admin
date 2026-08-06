@@ -23,7 +23,9 @@ const getId = (value) => (
 const getImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `${API_BASE}/${path.replace(/\\/g, '/')}`;
+  const cleanPath = path.replace(/\\/g, '/');
+  const fullPath = cleanPath.startsWith('public/') ? cleanPath : `public/uploads/${cleanPath}`;
+  return `${API_BASE}/${fullPath}`;
 };
 
 const getInitials = (name = '') => (

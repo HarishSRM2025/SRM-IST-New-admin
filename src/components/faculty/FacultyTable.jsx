@@ -54,7 +54,11 @@ const FacultyTable = ({ fetching, dataList, schoolsList, institutionsList = [], 
                   <td>
                     {item.facultyImage ? (
                       <img
-                        src={`${API_BASE}/${item.facultyImage.replace(/\\/g, '/')}`}
+                        src={item.facultyImage.startsWith('http')
+                          ? item.facultyImage
+                          : `${API_BASE}/${item.facultyImage.replace(/\\/g, '/').startsWith('public/')
+                              ? item.facultyImage.replace(/\\/g, '/')
+                              : 'public/uploads/' + item.facultyImage.replace(/\\/g, '/')}`}
                         alt={item.facultyName}
                         style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                       />
