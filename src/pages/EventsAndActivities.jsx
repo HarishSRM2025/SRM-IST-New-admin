@@ -251,15 +251,17 @@ const EventsAndActivities = () => {
   };
 
   const filteredDataList = dataList.filter(item => {
+    if (!item) return false;
     const schoolId = typeof item.school === 'object' ? item.school?._id : item.school;
-    const schoolName = schoolsList.find(s => s._id === schoolId)?.name || (typeof item.school === 'object' ? item.school?.name : '') || '';
+    const schoolName = schoolsList.find(s => String(s._id) === String(schoolId))?.name || (typeof item.school === 'object' ? item.school?.name : '') || '';
+    const q = (searchQuery || '').toLowerCase();
     
     return (
-      item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      schoolName.toLowerCase().includes(searchQuery.toLowerCase())
+      (item.name || '').toLowerCase().includes(q) ||
+      (item.type || '').toLowerCase().includes(q) ||
+      (item.status || '').toLowerCase().includes(q) ||
+      (item.location || '').toLowerCase().includes(q) ||
+      schoolName.toLowerCase().includes(q)
     );
   });
 

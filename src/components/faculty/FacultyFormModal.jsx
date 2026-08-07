@@ -22,6 +22,19 @@ const FacultyFormModal = ({
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [affiliationType, setAffiliationType] = useState('school');
+  const coordinatorSessionKey = sessionStorage.getItem('srm_coordinator_session') ? 'srm_coordinator_session' : 'srm_admin_session';
+  const coordinatorRawSession = sessionStorage.getItem(coordinatorSessionKey) || localStorage.getItem(coordinatorSessionKey);
+  const coordinatorSession = coordinatorRawSession ? JSON.parse(coordinatorRawSession) : null;
+  const isCoordinator = coordinatorSession?.role === 'coordinator';
+  const mappedInstituteId = coordinatorSession?.instituteId || '';
+  const mappedSchoolId = coordinatorSession?.schoolId || '';
+  const mappedDivisionId = coordinatorSession?.divisionId || '';
+  const visibleInstitutions = isCoordinator && mappedInstituteId
+    ? institutionsList.filter((inst) => String(inst._id) === String(mappedInstituteId))
+    : institutionsList;
+  const visibleSchools = isCoordinator && mappedSchoolId
+    ? schoolsList.filter((school) => String(school._id) === String(mappedSchoolId))
+    : schoolsList;
 
   // Reset preview and set affiliationType when modal opens/closes
   useEffect(() => {
@@ -36,7 +49,30 @@ const FacultyFormModal = ({
     }
   }, [formData.institution, isModalOpen]);
 
+  useEffect(() => {
+    if (!isModalOpen || !isCoordinator) return;
+    if (coordinatorSession.mappingLevel === 'institute') {
+      handleChange({ target: { name: 'institution', value: mappedInstituteId } });
+      handleChange({ target: { name: 'school', value: '' } });
+      handleChange({ target: { name: 'schoolDivision', value: '' } });
+      setAffiliationType('institution');
+    }
+    if (coordinatorSession.mappingLevel === 'school') {
+      handleChange({ target: { name: 'institution', value: '' } });
+      handleChange({ target: { name: 'school', value: mappedSchoolId } });
+      handleChange({ target: { name: 'schoolDivision', value: '' } });
+      setAffiliationType('school');
+    }
+    if (coordinatorSession.mappingLevel === 'division') {
+      handleChange({ target: { name: 'institution', value: '' } });
+      handleChange({ target: { name: 'school', value: mappedSchoolId } });
+      handleChange({ target: { name: 'schoolDivision', value: mappedDivisionId } });
+      setAffiliationType('school');
+    }
+  }, [isModalOpen, isCoordinator, coordinatorSession, mappedInstituteId, mappedSchoolId, mappedDivisionId, handleChange]);
+
   const handleAffiliationTypeChange = (type) => {
+    if (isCoordinator) return;
     setAffiliationType(type);
     if (type === 'institution') {
       handleChange({ target: { name: 'school', value: '' } });
@@ -146,12 +182,13 @@ const FacultyFormModal = ({
 
             <div className="form-group">
               <label className="form-label" htmlFor="affiliationType">Affiliation Type</label>
-              <select
-                id="affiliationType"
-                className="form-input"
-                value={affiliationType}
-                onChange={(e) => handleAffiliationTypeChange(e.target.value)}
-              >
+                <select
+                  id="affiliationType"
+                  className="form-input"
+                  value={affiliationType}
+                  onChange={(e) => handleAffiliationTypeChange(e.target.value)}
+                  disabled={isCoordinator}
+                >
                 <option value="school">School / Department</option>
                 <option value="institution">Institution</option>
               </select>
@@ -169,9 +206,10 @@ const FacultyFormModal = ({
                   value={formData.institution || ''}
                   onChange={handleChange}
                   required={affiliationType === 'institution'}
+                  disabled={isCoordinator}
                 >
                   <option value="">Select an Institution</option>
-                  {institutionsList.map(inst => (
+                  {visibleInstitutions.map(inst => (
                     <option key={inst._id} value={inst._id}>{inst.name}</option>
                   ))}
                 </select>
@@ -189,9 +227,10 @@ const FacultyFormModal = ({
                     handleChange({ target: { name: 'schoolDivision', value: '' } });
                   }}
                   required={affiliationType === 'school'}
+                  disabled={isCoordinator && coordinatorSession.mappingLevel !== 'institute'}
                 >
                   <option value="">Select a School</option>
-                  {schoolsList.map(s => (
+                  {visibleSchools.map(s => (
                     <option key={s._id} value={s._id}>{s.name}</option>
                   ))}
                 </select>
@@ -213,7 +252,7 @@ const FacultyFormModal = ({
                     className="form-input"
                     value={formData.schoolDivision || ''}
                     onChange={handleChange}
-                    disabled={!formData.school}
+                    disabled={!formData.school || (isCoordinator && coordinatorSession.mappingLevel === 'division')}
                   >
                     <option value="">{formData.school ? 'Select a Division' : '-- Select a School first --'}</option>
                     {availableDivisions.map(d => (

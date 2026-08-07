@@ -159,14 +159,15 @@ const InstituteEventsAndActivities = () => {
   };
 
   const filteredDataList = dataList.filter(item => {
+    if (!item) return false;
     const instId = typeof item.institutionId === 'object' ? item.institutionId?._id : item.institutionId;
-    const instName = institutionsList.find(s => s._id === instId)?.name || (typeof item.institutionId === 'object' ? item.institutionId?.name : '');
-    const q = searchQuery.toLowerCase();
+    const instName = institutionsList.find(s => String(s._id) === String(instId))?.name || (typeof item.institutionId === 'object' ? item.institutionId?.name : '') || '';
+    const q = (searchQuery || '').toLowerCase();
     return (
-      item.name?.toLowerCase().includes(q) ||
-      item.type?.toLowerCase().includes(q) ||
-      item.status?.toLowerCase().includes(q) ||
-      item.location?.toLowerCase().includes(q) ||
+      (item.name || '').toLowerCase().includes(q) ||
+      (item.type || '').toLowerCase().includes(q) ||
+      (item.status || '').toLowerCase().includes(q) ||
+      (item.location || '').toLowerCase().includes(q) ||
       instName.toLowerCase().includes(q)
     );
   });

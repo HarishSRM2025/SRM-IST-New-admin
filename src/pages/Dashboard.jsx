@@ -1,5 +1,7 @@
-import React from 'react';
-import { Users, Building, FileText, Activity, RefreshCw } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Building, FileText, Activity, RefreshCw, ArrowRight } from 'lucide-react';
+import { getAuditLogs } from '../api/auth';
 import '../styles/theme.css';
 
 const StatCard = ({ title, value, icon: Icon, iconColor, iconBg, trend, trendLabel, trendClass }) => (
@@ -17,59 +19,129 @@ const StatCard = ({ title, value, icon: Icon, iconColor, iconBg, trend, trendLab
     </div>
   </div>
 );
+
+const getSession = () => {
+  const raw =
+    sessionStorage.getItem('srm_coordinator_session') ||
+    sessionStorage.getItem('srm_admin_session') ||
+    localStorage.getItem('srm_admin_session');
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const [logs, setLogs] = useState([]);
+  const [counts, setCounts] = useState({ institution: 0, schools: 0, divisions: 0 });
+  const [loadingStats, setLoadingStats] = useState(true);
+  const session = useMemo(() => getSession(), []);
+  const isCoordinator = session?.role === 'coordinator';
+  const roleLabel = isCoordinator ? 'Coordinator' : 'Admin';
+  const scopeLabel = isCoordinator
+    ? `${String(session?.mappingLevel || 'department')} scope`
+    : 'Overall scope';
+
+  const fetchJsonList = async (url) => {
+    const response = await fetch(url);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) return [];
+    if (Array.isArray(data)) return data;
+    return data?.data && Array.isArray(data.data) ? data.data : [];
+  };
+
+  const loadStats = async () => {
+    setLoadingStats(true);
+    try {
+      const [institutions, schools, divisions] = await Promise.all([
+        fetchJsonList(`${import.meta.env.VITE_API_URL}/institution/getall`),
+        fetchJsonList(`${import.meta.env.VITE_API_URL}/schools/getall`),
+        fetchJsonList(`${import.meta.env.VITE_API_URL}/school-division/getall`),
+      ]);
+      setCounts({
+        institution: institutions.length,
+        schools: schools.length,
+        divisions: divisions.length,
+      });
+    } catch {
+      setCounts({ institution: 0, schools: 0, divisions: 0 });
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadLogs = async () => {
+      try {
+        const data = await getAuditLogs();
+        setLogs((data.logs || []).filter((log) => {
+          const action = String(log.action || '').toLowerCase();
+          return action.includes(' added ') || action.includes(' updated ') || action.includes(' deleted ');
+        }).slice(0, 5));
+      } catch {
+        setLogs([]);
+      }
+    };
+
+    loadLogs();
+    loadStats();
+  }, []);
+
   return (
     <div>
       <div className="page-header" style={{ padding: '0 0 32px 0' }}>
         <div>
           <div className="breadcrumb">SRM Admin <span>&gt;</span> Dashboard</div>
-          <h1 className="page-title">Dashboard Overview</h1>
-          <p className="page-subtitle">Welcome back! Here is what's happening today.</p>
+          <h1 className="page-title">{roleLabel} Dashboard Overview</h1>
+          <p className="page-subtitle">{scopeLabel} only.</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline"><RefreshCw size={14} /> Refresh</button>
+          <button className="btn btn-outline" onClick={loadStats}><RefreshCw size={14} /> Refresh</button>
         </div>
       </div>
 
       <div className="stats-grid">
-        <StatCard 
-          title="Total Students" 
-          value="12,450" 
-          icon={Users} 
-          iconColor="#3b82f6" 
+        <StatCard
+          title="Institutions"
+          value={loadingStats ? '...' : String(counts.institution)}
+          icon={Users}
+          iconColor="#3b82f6"
           iconBg="#eff6ff"
-          trend="↑ +120"
-          trendLabel="this month"
+          trend={isCoordinator ? 'Scoped' : 'All'}
+          trendLabel={isCoordinator ? 'mapped data' : 'overall data'}
           trendClass="trend-up"
         />
-        <StatCard 
-          title="Departments" 
-          value="48" 
-          icon={Building} 
-          iconColor="#10b981" 
+        <StatCard
+          title="Schools"
+          value={loadingStats ? '...' : String(counts.schools)}
+          icon={Building}
+          iconColor="#10b981"
           iconBg="#ecfdf5"
-          trend="↑ +2"
-          trendLabel="this year"
+          trend={isCoordinator ? 'Scoped' : 'All'}
+          trendLabel={isCoordinator ? 'mapped data' : 'overall data'}
           trendClass="trend-up"
         />
-        <StatCard 
-          title="Total Applications" 
-          value="3,210" 
-          icon={FileText} 
-          iconColor="#8b5cf6" 
+        <StatCard
+          title="School Divisions"
+          value={loadingStats ? '...' : String(counts.divisions)}
+          icon={FileText}
+          iconColor="#8b5cf6"
           iconBg="#f5f3ff"
-          trend="↑ +430"
-          trendLabel="this week"
+          trend={isCoordinator ? 'Scoped' : 'All'}
+          trendLabel={isCoordinator ? 'mapped data' : 'overall data'}
           trendClass="trend-up"
         />
-        <StatCard 
-          title="Active Sessions" 
-          value="1,124" 
-          icon={Activity} 
-          iconColor="#f59e0b" 
+        <StatCard
+          title="Recent Logs"
+          value={loadingStats ? '...' : String(logs.length)}
+          icon={Activity}
+          iconColor="#f59e0b"
           iconBg="#fffbeb"
-          trend="↓ -12"
-          trendLabel="today"
+          trend={isCoordinator ? 'Own logs' : 'All logs'}
+          trendLabel="latest activity"
           trendClass="trend-down"
         />
       </div>
@@ -78,15 +150,45 @@ const Dashboard = () => {
         <div className="card-header">
           <div className="card-title">
             <Activity size={16} color="var(--primary-blue)" />
-            Recent Activity
+            Audit Log Preview
+          </div>
+          <div className="card-actions">
+            <button className="btn btn-outline" onClick={() => navigate('/logs')}>
+              More <ArrowRight size={14} />
+            </button>
           </div>
         </div>
-        <div className="empty-state" style={{ padding: '60px 20px' }}>
-          <div className="empty-icon">
-            <FileText size={28} />
+        {logs.length === 0 ? (
+          <div className="empty-state" style={{ padding: '60px 20px' }}>
+            <div className="empty-icon">
+              <FileText size={28} />
+            </div>
+            <p className="empty-text">No recent audit logs to show.</p>
           </div>
-          <p className="empty-text">No recent activity to show.</p>
-        </div>
+        ) : (
+          <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Module/Page</th>
+                  <th>Date &amp; Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log._id}>
+                    <td>{log.userId?.username || log.userId?.email || '-'}</td>
+                    <td>{log.action}</td>
+                    <td>{log.modulePage}</td>
+                    <td>{new Date(log.createdAt).toLocaleString('en-IN')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

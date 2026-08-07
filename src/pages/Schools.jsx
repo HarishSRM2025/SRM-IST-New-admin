@@ -4,6 +4,7 @@ import SubNav from '../components/common/SubNav';
 import SchoolsTable from '../components/schools/SchoolsTable';
 import SchoolsFormModal from '../components/schools/SchoolsFormModal';
 import InstitutionDeleteModal from '../components/institution/InstitutionDeleteModal';
+import { useSession, isCoordinator } from '../hooks/useSession';
 
 const schoolTabs = [
   { label: 'School Details', path: '/schools', end: true },
@@ -14,6 +15,8 @@ const schoolTabs = [
 ];
 
 const Schools = () => {
+  const session = useSession();
+  const hideCreate = isCoordinator(session);
   const [dataList, setDataList] = useState([]);
   const [institutionsList, setInstitutionsList] = useState([]);
   const [formData, setFormData] = useState({
@@ -205,7 +208,7 @@ const Schools = () => {
     <div>
       {/* Reusing InstitutionHeader as it is generic enough for search & add button */}
       <InstitutionHeader 
-        handleOpenModal={handleOpenModal} 
+        handleOpenModal={hideCreate ? null : handleOpenModal} 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         title="Schools"

@@ -4,6 +4,7 @@ import InstitutionTable from '../components/institution/InstitutionTable';
 import InstitutionFormModal from '../components/institution/InstitutionFormModal';
 import InstitutionDeleteModal from '../components/institution/InstitutionDeleteModal';
 import SubNav from '../components/common/SubNav';
+import { useSession, isCoordinator } from '../hooks/useSession';
 
 const institutionTabs = [
   { label: 'Institute Details', path: '/institution', end: true },
@@ -16,6 +17,8 @@ const institutionTabs = [
 ];
 
 const Institution = () => {
+  const session = useSession();
+  const hideCreate = isCoordinator(session);
   const [dataList, setDataList] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -177,7 +180,7 @@ const Institution = () => {
   return (
     <div>
       <InstitutionHeader 
-        handleOpenModal={handleOpenModal} 
+        handleOpenModal={hideCreate ? null : handleOpenModal} 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />

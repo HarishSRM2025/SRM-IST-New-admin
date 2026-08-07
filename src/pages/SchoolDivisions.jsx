@@ -4,6 +4,7 @@ import SubNav from '../components/common/SubNav';
 import SchoolDivisionsTable from '../components/schools/SchoolDivisionsTable';
 import SchoolDivisionsFormModal from '../components/schools/SchoolDivisionsFormModal';
 import InstitutionDeleteModal from '../components/institution/InstitutionDeleteModal';
+import { useSession, isCoordinator } from '../hooks/useSession';
 
 const divisionTabs = [
   { label: 'Division Details', path: '/school-divisions', end: true },
@@ -21,6 +22,8 @@ const blankForm = {
 };
 
 const SchoolDivisions = () => {
+  const session = useSession();
+  const hideCreate = isCoordinator(session);
   const [dataList, setDataList] = useState([]);
   const [schoolsList, setSchoolsList] = useState([]);
   const [formData, setFormData] = useState(blankForm);
@@ -188,7 +191,7 @@ const SchoolDivisions = () => {
   return (
     <div>
       <InstitutionHeader
-        handleOpenModal={handleOpenModal}
+        handleOpenModal={hideCreate ? null : handleOpenModal}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         title="School Divisions"

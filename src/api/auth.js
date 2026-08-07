@@ -40,6 +40,10 @@ export const signin = ({ email, password }) => {
   return requestAuth("signin", { email, password });
 };
 
+export const signinCoordinator = ({ email, password }) => {
+  return requestAuth("signin", { email, password, portal: "coordinator" });
+};
+
 export const signup = ({ fullName, email, password }) => {
   return requestAuth("signup", {
     username: fullName,
@@ -61,5 +65,17 @@ export const updateUser = (id, user) => {
   return requestUsers(`/${id}`, {
     method: "PUT",
     body: JSON.stringify(user),
+  });
+};
+
+export const createCoordinator = (user) => {
+  return requestAuth("coordinators", user);
+};
+
+export const getAuditLogs = () => {
+  return fetch(`${API_BASE_URL}/auth/audit-logs`).then(async (response) => {
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false) throw new Error(data.message || "Audit log request failed.");
+    return data;
   });
 };

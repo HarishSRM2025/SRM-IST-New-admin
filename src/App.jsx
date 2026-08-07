@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/Dashboard';
@@ -35,16 +35,23 @@ import LeadershipMessage from './pages/LeadershipMessage';
 import SchoolDivisionProgrammes from './pages/schoolDivisionProgrammes';
 import StudentTestimonials from './pages/StudentTestimonials';
 import UserManagement from './pages/UserManagement';
+import CoordinatorManagement from './pages/CoordinatorManagement';
+import CoordinatorSignIn from './pages/CoordinatorSignIn';
+import LogTracker from './pages/LogTracker';
 import CareersManagement from './pages/CareersManagement';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import { signin, signup } from './api/auth';
+import { signin, signinCoordinator, signup } from './api/auth';
 
 const AUTH_STORAGE_KEY = 'srm_admin_session';
+const COORDINATOR_AUTH_STORAGE_KEY = 'srm_coordinator_session';
 const USER_DATA_STORAGE_KEY = 'IST_USER_DATA';
 
 function getStoredSession() {
-  const savedSession = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
+  const savedSession =
+    sessionStorage.getItem(COORDINATOR_AUTH_STORAGE_KEY) ||
+    sessionStorage.getItem(AUTH_STORAGE_KEY) ||
+    localStorage.getItem(AUTH_STORAGE_KEY);
 
   if (!savedSession) {
     return null;
@@ -54,8 +61,31 @@ function getStoredSession() {
     return JSON.parse(savedSession);
   } catch {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(COORDINATOR_AUTH_STORAGE_KEY);
     sessionStorage.removeItem(AUTH_STORAGE_KEY);
     return null;
+  }
+}
+
+function getSessionHeaders() {
+  const raw =
+    sessionStorage.getItem(COORDINATOR_AUTH_STORAGE_KEY) ||
+    sessionStorage.getItem(AUTH_STORAGE_KEY) ||
+    localStorage.getItem(AUTH_STORAGE_KEY);
+  if (!raw) return {};
+  try {
+    const session = JSON.parse(raw);
+    if (!session?.role) return {};
+    return {
+      'x-user-id': session.id || '',
+      'x-user-role': session.role || '',
+      'x-user-mapping-level': session.mappingLevel || '',
+      'x-user-institute-id': session.instituteId || '',
+      'x-user-school-id': session.schoolId || '',
+      'x-user-division-id': session.divisionId || '',
+    };
+  } catch {
+    return {};
   }
 }
 
@@ -88,6 +118,7 @@ function SignInRoute({ isAuthenticated, onAuthSuccess }) {
     };
 
     otherStorage.removeItem(AUTH_STORAGE_KEY);
+    otherStorage.removeItem(COORDINATOR_AUTH_STORAGE_KEY);
     storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
     onAuthSuccess(session);
     navigate('/', { replace: true });
@@ -99,6 +130,40 @@ function SignInRoute({ isAuthenticated, onAuthSuccess }) {
       onNavigateToSignUp={() => navigate('/signup')}
     />
   );
+}
+
+function CoordinatorSignInRoute({ isAuthenticated, onAuthSuccess }) {
+  const navigate = useNavigate();
+
+  if (isAuthenticated) {
+    return <Navigate to="/coordinator" replace />;
+  }
+
+  const handleSignIn = async (formData) => {
+    const result = await signinCoordinator(formData);
+    const session = {
+      id: result.user?._id,
+      username: result.user?.username,
+      email: result.user?.email || formData.email,
+      role: result.user?.role,
+      status: result.user?.status,
+      mappingLevel: result.user?.mappingLevel,
+      instituteId: result.user?.instituteId,
+      schoolId: result.user?.schoolId,
+      divisionId: result.user?.divisionId,
+      message: result.message,
+      signedInAt: new Date().toISOString(),
+    };
+
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(COORDINATOR_AUTH_STORAGE_KEY);
+    sessionStorage.setItem(COORDINATOR_AUTH_STORAGE_KEY, JSON.stringify(session));
+    onAuthSuccess(session);
+    navigate('/', { replace: true });
+  };
+
+  return <CoordinatorSignIn onSignIn={handleSignIn} />;
 }
 
 function SignUpRoute({ isAuthenticated }) {
@@ -124,10 +189,29 @@ function SignUpRoute({ isAuthenticated }) {
 function App() {
   const [session, setSession] = useState(() => getStoredSession());
 
+  useEffect(() => {
+    const originalFetch = window.fetch.bind(window);
+
+    window.fetch = (input, init = {}) => {
+      const headers = new Headers(init.headers || {});
+      const sessionHeaders = getSessionHeaders();
+      Object.entries(sessionHeaders).forEach(([key, value]) => {
+        if (value) headers.set(key, value);
+      });
+      return originalFetch(input, { ...init, headers });
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(COORDINATOR_AUTH_STORAGE_KEY);
     localStorage.removeItem(USER_DATA_STORAGE_KEY);
     sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(COORDINATOR_AUTH_STORAGE_KEY);
     setSession(null);
   };
 
@@ -138,6 +222,7 @@ function App() {
           path="/signin"
           element={<SignInRoute isAuthenticated={Boolean(session)} onAuthSuccess={setSession} />}
         />
+        <Route path="/coordinator/signin" element={<CoordinatorSignInRoute isAuthenticated={Boolean(session)} onAuthSuccess={setSession} />} />
         <Route
           path="/signup"
           element={<SignUpRoute isAuthenticated={Boolean(session)} />}
@@ -190,7 +275,10 @@ function App() {
           <Route path="research/faculty-members" element={<ResearchFacultyMembers />} />
           <Route path="research/student-members" element={<ResearchStudentMembers />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="coordinators" element={<CoordinatorManagement />} />
+          <Route path="logs" element={<LogTracker />} />
         </Route>
+        <Route path="/coordinator" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to={session ? "/" : "/signin"} replace />} />
       </Routes>
     </Router>

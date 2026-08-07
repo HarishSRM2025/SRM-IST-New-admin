@@ -158,13 +158,14 @@ const DivisionEventsAndActivities = () => {
   };
 
   const filteredDataList = dataList.filter(item => {
+    if (!item) return false;
     const divisionId = typeof item.schoolDivisionId === 'object' ? item.schoolDivisionId?._id : item.schoolDivisionId;
-    const divisionName = divisionsList.find(d => d._id === divisionId)?.name || item.schoolDivisionId?.name || '';
-    const query = searchQuery.toLowerCase();
-    return item.name?.toLowerCase().includes(query) ||
-      item.type?.toLowerCase().includes(query) ||
-      item.status?.toLowerCase().includes(query) ||
-      item.location?.toLowerCase().includes(query) ||
+    const divisionName = divisionsList.find(d => String(d._id) === String(divisionId))?.name || (typeof item.schoolDivisionId === 'object' ? item.schoolDivisionId?.name : '') || '';
+    const query = (searchQuery || '').toLowerCase();
+    return (item.name || '').toLowerCase().includes(query) ||
+      (item.type || '').toLowerCase().includes(query) ||
+      (item.status || '').toLowerCase().includes(query) ||
+      (item.location || '').toLowerCase().includes(query) ||
       divisionName.toLowerCase().includes(query);
   });
 
