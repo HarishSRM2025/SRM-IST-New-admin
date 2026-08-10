@@ -60,7 +60,7 @@ const FacultyTable = ({
     return division ? division.name : '—';
   };
 
-  // Derive unique designations dynamically from filtered/contextual faculty data
+  // Derive designation options: consolidated rank categories + individual specific roles
   const uniqueDesignations = useMemo(() => {
     const contextualFaculty = allFacultyData.filter(item => {
       const schoolObj = schoolsList.find(s => s._id === item.school);
@@ -74,10 +74,24 @@ const FacultyTable = ({
       return matchesInstitution && matchesSchool && matchesDivision && matchesGender;
     });
 
-    const designations = contextualFaculty
-      .map(f => f.designation)
-      .filter(d => d && d.trim() !== '');
-    return [...new Set(designations)].sort();
+    const rawDesignations = contextualFaculty
+      .map(f => f.designation?.trim())
+      .filter(Boolean);
+
+    const categories = [];
+    if (rawDesignations.some(d => /assistant\s+professor/i.test(d))) {
+      categories.push('Assistant Professor');
+    }
+    if (rawDesignations.some(d => /associate\s+professor/i.test(d))) {
+      categories.push('Associate Professor');
+    }
+    if (rawDesignations.some(d => /professor/i.test(d) && !/assistant|associate/i.test(d))) {
+      categories.push('Professor');
+    }
+
+    const uniqueRaw = [...new Set(rawDesignations)].filter(d => !categories.includes(d)).sort();
+
+    return [...categories, ...uniqueRaw];
   }, [allFacultyData, selectedInstitution, selectedSchool, selectedDivision, selectedGender, schoolsList]);
 
   // Get schools for the currently selected institution

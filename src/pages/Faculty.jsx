@@ -297,6 +297,27 @@ const Faculty = () => {
     }
   };
 
+  const matchesDesignationFilter = (designation, filter) => {
+    if (!filter) return true;
+    if (!designation) return false;
+    const d = designation.trim();
+    const f = filter.trim();
+
+    if (d === f) return true;
+
+    if (f === 'Assistant Professor') {
+      return /assistant\s+professor/i.test(d);
+    }
+    if (f === 'Associate Professor') {
+      return /associate\s+professor/i.test(d);
+    }
+    if (f === 'Professor') {
+      return /professor/i.test(d) && !/assistant|associate/i.test(d);
+    }
+
+    return d.toLowerCase() === f.toLowerCase();
+  };
+
   const filteredDataList = dataList.filter(item => {
     const schoolObj = schoolsList.find(s => s._id === item.school);
     const schoolName = schoolObj?.name || '';
@@ -316,7 +337,7 @@ const Faculty = () => {
     const schoolInstId = schoolObj ? (typeof schoolObj.institutionId === 'object' ? schoolObj.institutionId?._id : schoolObj.institutionId) : null;
     const matchesInstitution = !selectedInstitution || item.institution === selectedInstitution || String(schoolInstId) === String(selectedInstitution);
     const matchesDivision = !selectedDivision || item.schoolDivision === selectedDivision;
-    const matchesDesignation = !selectedDesignation || item.designation === selectedDesignation;
+    const matchesDesignation = matchesDesignationFilter(item.designation, selectedDesignation);
     const matchesGender = !selectedGender || item.facultyGender === selectedGender;
 
     return matchesSearch && matchesSchool && matchesInstitution && matchesDivision && matchesDesignation && matchesGender;
