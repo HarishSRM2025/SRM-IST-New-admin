@@ -1,7 +1,13 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage }) => {
+const Pagination = ({
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  totalItems = 0,
+  itemsPerPage = 10
+}) => {
   if (totalPages <= 1 && totalItems === 0) return null;
 
   const startItem = (currentPage - 1) * itemsPerPage + 1;
@@ -46,8 +52,19 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
       flexWrap: 'wrap',
       gap: '12px'
     }}>
-      <div style={{ fontSize: '13px', color: 'var(--text-gray)' }}>
-        Showing <strong>{totalItems === 0 ? 0 : startItem}</strong> to <strong>{endItem}</strong> of <strong>{totalItems}</strong> entries
+      <div style={{ fontSize: '13px', color: 'var(--text-gray)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <span>Showing <strong>{totalItems === 0 ? 0 : startItem}</strong> to <strong>{endItem}</strong> of <strong>{totalItems}</strong> entries</span>
+        <span style={{
+          padding: '4px 10px',
+          backgroundColor: 'var(--primary-blue-light, #eff6ff)',
+          color: 'var(--primary-blue, #2563eb)',
+          borderRadius: '6px',
+          fontWeight: '600',
+          fontSize: '12px',
+          border: '1px solid #bfdbfe'
+        }}>
+          Page {currentPage} of {totalPages || 1}
+        </span>
       </div>
       
       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
