@@ -110,7 +110,17 @@ const FacultyTable = ({
     return school?.divisions || [];
   }, [selectedSchool, schoolsList]);
 
-  const hasActiveFilters = selectedSchool || selectedInstitution || selectedDivision || selectedDesignation || selectedGender;
+  const rawSession =
+    sessionStorage.getItem('srm_coordinator_session') ||
+    localStorage.getItem('srm_coordinator_session') ||
+    sessionStorage.getItem('srm_admin_session') ||
+    localStorage.getItem('srm_admin_session');
+  const userSession = rawSession ? JSON.parse(rawSession) : null;
+  const isCoordinator = userSession?.role === 'coordinator';
+
+  const hasActiveFilters = isCoordinator
+    ? Boolean(selectedDesignation || selectedGender)
+    : Boolean(selectedSchool || selectedInstitution || selectedDivision || selectedDesignation || selectedGender);
 
   return (
     <div className="table-container animate-fade-in">
@@ -138,59 +148,63 @@ const FacultyTable = ({
           Filters
         </div>
 
-        {/* 1. Institution Filter (always enabled) */}
-        <select
-          value={selectedInstitution}
-          onChange={(e) => setSelectedInstitution(e.target.value)}
-          style={{
-            ...filterSelectStyle,
-            borderColor: selectedInstitution ? 'var(--primary-blue)' : 'var(--border-color)',
-            backgroundColor: selectedInstitution ? 'var(--primary-blue-light)' : 'var(--bg-white)'
-          }}
-        >
-          <option value="">All Institutions</option>
-          {institutionsList.map(i => (
-            <option key={i._id} value={i._id}>{i.name}</option>
-          ))}
-        </select>
+        {!isCoordinator && (
+          <>
+            {/* 1. Institution Filter (always enabled) */}
+            <select
+              value={selectedInstitution}
+              onChange={(e) => setSelectedInstitution(e.target.value)}
+              style={{
+                ...filterSelectStyle,
+                borderColor: selectedInstitution ? 'var(--primary-blue)' : 'var(--border-color)',
+                backgroundColor: selectedInstitution ? 'var(--primary-blue-light)' : 'var(--bg-white)'
+              }}
+            >
+              <option value="">All Institutions</option>
+              {institutionsList.map(i => (
+                <option key={i._id} value={i._id}>{i.name}</option>
+              ))}
+            </select>
 
-        {/* 2. School Filter (enabled only when institution is selected) */}
-        <select
-          value={selectedSchool}
-          onChange={(e) => setSelectedSchool(e.target.value)}
-          disabled={!selectedInstitution}
-          style={{
-            ...filterSelectStyle,
-            borderColor: selectedSchool ? 'var(--primary-blue)' : 'var(--border-color)',
-            backgroundColor: selectedSchool ? 'var(--primary-blue-light)' : 'var(--bg-white)',
-            opacity: selectedInstitution ? 1 : 0.55,
-            cursor: selectedInstitution ? 'pointer' : 'not-allowed'
-          }}
-        >
-          <option value="">{selectedInstitution ? 'All Schools' : 'Select Institution first'}</option>
-          {availableSchools.map(s => (
-            <option key={s._id} value={s._id}>{s.name}</option>
-          ))}
-        </select>
+            {/* 2. School Filter (enabled only when institution is selected) */}
+            <select
+              value={selectedSchool}
+              onChange={(e) => setSelectedSchool(e.target.value)}
+              disabled={!selectedInstitution}
+              style={{
+                ...filterSelectStyle,
+                borderColor: selectedSchool ? 'var(--primary-blue)' : 'var(--border-color)',
+                backgroundColor: selectedSchool ? 'var(--primary-blue-light)' : 'var(--bg-white)',
+                opacity: selectedInstitution ? 1 : 0.55,
+                cursor: selectedInstitution ? 'pointer' : 'not-allowed'
+              }}
+            >
+              <option value="">{selectedInstitution ? 'All Schools' : 'Select Institution first'}</option>
+              {availableSchools.map(s => (
+                <option key={s._id} value={s._id}>{s.name}</option>
+              ))}
+            </select>
 
-        {/* 3. Division Filter (enabled only when school is selected) */}
-        <select
-          value={selectedDivision}
-          onChange={(e) => setSelectedDivision(e.target.value)}
-          disabled={!selectedSchool}
-          style={{
-            ...filterSelectStyle,
-            borderColor: selectedDivision ? 'var(--primary-blue)' : 'var(--border-color)',
-            backgroundColor: selectedDivision ? 'var(--primary-blue-light)' : 'var(--bg-white)',
-            opacity: selectedSchool ? 1 : 0.55,
-            cursor: selectedSchool ? 'pointer' : 'not-allowed'
-          }}
-        >
-          <option value="">{selectedSchool ? 'All Divisions' : 'Select School first'}</option>
-          {availableDivisions.map(d => (
-            <option key={d._id} value={d._id}>{d.name}</option>
-          ))}
-        </select>
+            {/* 3. Division Filter (enabled only when school is selected) */}
+            <select
+              value={selectedDivision}
+              onChange={(e) => setSelectedDivision(e.target.value)}
+              disabled={!selectedSchool}
+              style={{
+                ...filterSelectStyle,
+                borderColor: selectedDivision ? 'var(--primary-blue)' : 'var(--border-color)',
+                backgroundColor: selectedDivision ? 'var(--primary-blue-light)' : 'var(--bg-white)',
+                opacity: selectedSchool ? 1 : 0.55,
+                cursor: selectedSchool ? 'pointer' : 'not-allowed'
+              }}
+            >
+              <option value="">{selectedSchool ? 'All Divisions' : 'Select School first'}</option>
+              {availableDivisions.map(d => (
+                <option key={d._id} value={d._id}>{d.name}</option>
+              ))}
+            </select>
+          </>
+        )}
 
         {/* Designation Filter */}
         <select
