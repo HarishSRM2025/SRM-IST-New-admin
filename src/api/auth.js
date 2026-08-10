@@ -72,8 +72,29 @@ export const createCoordinator = (user) => {
   return requestAuth("coordinators", user);
 };
 
+const getSessionHeaders = () => {
+  const raw =
+    sessionStorage.getItem('srm_coordinator_session') ||
+    sessionStorage.getItem('srm_admin_session') ||
+    localStorage.getItem('srm_admin_session');
+  if (!raw) return {};
+  try {
+    const session = JSON.parse(raw);
+    return {
+      'x-user-id': session.id || '',
+      'x-user-role': session.role || '',
+    };
+  } catch {
+    return {};
+  }
+};
+
 export const getAuditLogs = () => {
-  return fetch(`${API_BASE_URL}/auth/audit-logs`).then(async (response) => {
+  return fetch(`${API_BASE_URL}/auth/audit-logs`, {
+    headers: {
+      ...getSessionHeaders(),
+    },
+  }).then(async (response) => {
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.success === false) throw new Error(data.message || "Audit log request failed.");
     return data;

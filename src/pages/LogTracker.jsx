@@ -36,10 +36,7 @@ export default function LogTracker() {
     setError('');
     try {
       const data = await getAuditLogs();
-      setLogs((data.logs || []).filter((log) => {
-        const action = String(log.action || '').toLowerCase();
-        return action.includes(' added ') || action.includes(' updated ') || action.includes(' deleted ');
-      }));
+      setLogs(data.logs || []);
     } catch (err) {
       setError(err.message || 'Unable to load audit logs.');
     } finally {
@@ -63,17 +60,29 @@ export default function LogTracker() {
   }, []);
 
   const options = useMemo(() => {
-    const userOptions = users
+    const adminUserOptionsFromApi = users
       .filter((user) => user.role !== 'coordinator')
       .map((user) => user.username || user.email || '')
       .filter(Boolean);
-    const coordinatorUsers = users
+
+    const coordinatorUsersFromApi = users
       .filter((user) => user.role === 'coordinator')
       .map((user) => user.username || user.email || '')
       .filter(Boolean);
+
+    const logAdminUsers = logs
+      .filter((log) => log.userId?.role !== 'coordinator')
+      .map((log) => log.userId?.username || log.userId?.email || '')
+      .filter(Boolean);
+
+    const logCoordinatorUsers = logs
+      .filter((log) => log.userId?.role === 'coordinator')
+      .map((log) => log.userId?.username || log.userId?.email || '')
+      .filter(Boolean);
+
     return {
-      users: [...new Set(userOptions)],
-      coordinators: coordinatorUsers,
+      users: [...new Set([...adminUserOptionsFromApi, ...logAdminUsers])].sort(),
+      coordinators: [...new Set([...coordinatorUsersFromApi, ...logCoordinatorUsers])].sort(),
       actions: ['added', 'updated', 'deleted'],
       modules: [
         'institution',
@@ -94,18 +103,19 @@ export default function LogTracker() {
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       const userLabel = log.userId?.username || log.userId?.email || '';
-      const userRole = log.userId?.role || '';
       const logDate = log.createdAt ? new Date(log.createdAt).toISOString().slice(0, 10) : '';
       const action = String(log.action || '').toLowerCase();
+      const modulePage = String(log.modulePage || '').toLowerCase();
+
+      const matchesUser = !filters.user || userLabel.toLowerCase() === filters.user.toLowerCase();
+      const matchesCoordinator = !filters.userRole || userLabel.toLowerCase() === filters.userRole.toLowerCase();
+      const matchesAction = !filters.action || action.includes(filters.action.toLowerCase());
+      const matchesModulePage = !filters.modulePage || modulePage.includes(filters.modulePage.toLowerCase());
+      const matchesDate = !filters.date || logDate === filters.date;
+
       return (
-        (action.includes(' added ') || action.includes(' updated ') || action.includes(' deleted ')) &&
-        (isCoordinator || (
-          (!filters.user || userLabel === filters.user) &&
-          (!filters.userRole || userRole === filters.userRole) &&
-          (!filters.action || String(log.action || '') === filters.action) &&
-          (!filters.modulePage || String(log.modulePage || '') === filters.modulePage) &&
-          (!filters.date || logDate === filters.date)
-        ))
+        isCoordinator ||
+        (matchesUser && matchesCoordinator && matchesAction && matchesModulePage && matchesDate)
       );
     });
   }, [filters, isCoordinator, logs]);
