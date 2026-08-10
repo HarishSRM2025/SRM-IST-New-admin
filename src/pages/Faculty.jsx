@@ -36,6 +36,11 @@ const Faculty = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('');
+  const [selectedInstitution, setSelectedInstitution] = useState('');
+  const [selectedDivision, setSelectedDivision] = useState('');
+  const [selectedDesignation, setSelectedDesignation] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -107,10 +112,6 @@ const Faculty = () => {
 
       setSchoolsList(combinedList);
       setInstitutionsList(institutions);
-      console.log('[DEBUG] divisions fetched:', divisions.length, divisions.map(d => ({ _id: d._id, schoolId: d.schoolId, name: d.name })));
-      console.log('[DEBUG] schools fetched:', schools.length, schools.map(s => ({ _id: s._id, name: s.name })));
-      console.log('[DEBUG] combinedList:', combinedList.map(s => ({ _id: s._id, name: s.name, divCount: s.divisions?.length, divs: s.divisions?.map(d => d.name) })));
-
 
       // Fetch Faculty
       const dataRes = await fetch(`${import.meta.env.VITE_API_URL}/faculty/getfaculty`);
@@ -138,7 +139,29 @@ const Faculty = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedSchool, selectedInstitution, selectedDivision, selectedDesignation, selectedGender]);
+
+  const handleInstitutionChange = (value) => {
+    setSelectedInstitution(value);
+    setSelectedSchool('');
+    setSelectedDivision('');
+    setSelectedDesignation('');
+  };
+
+  const handleSchoolChange = (value) => {
+    setSelectedSchool(value);
+    setSelectedDivision('');
+    setSelectedDesignation('');
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedSchool('');
+    setSelectedInstitution('');
+    setSelectedDivision('');
+    setSelectedDesignation('');
+    setSelectedGender('');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -275,15 +298,28 @@ const Faculty = () => {
   };
 
   const filteredDataList = dataList.filter(item => {
-    const schoolName = schoolsList.find(s => s._id === item.school)?.name || '';
+    const schoolObj = schoolsList.find(s => s._id === item.school);
+    const schoolName = schoolObj?.name || '';
     const instName = institutionsList.find(i => i._id === item.institution)?.name || '';
-    return (
+    const divName = schoolObj?.divisions?.find(d => d._id === item.schoolDivision)?.name || '';
+
+    const matchesSearch = !searchQuery || (
       item.facultyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.facultyEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      instName.toLowerCase().includes(searchQuery.toLowerCase())
+      instName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      divName.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const matchesSchool = !selectedSchool || item.school === selectedSchool;
+    const schoolInstId = schoolObj ? (typeof schoolObj.institutionId === 'object' ? schoolObj.institutionId?._id : schoolObj.institutionId) : null;
+    const matchesInstitution = !selectedInstitution || item.institution === selectedInstitution || String(schoolInstId) === String(selectedInstitution);
+    const matchesDivision = !selectedDivision || item.schoolDivision === selectedDivision;
+    const matchesDesignation = !selectedDesignation || item.designation === selectedDesignation;
+    const matchesGender = !selectedGender || item.facultyGender === selectedGender;
+
+    return matchesSearch && matchesSchool && matchesInstitution && matchesDivision && matchesDesignation && matchesGender;
   });
 
   const totalItems = filteredDataList.length;
@@ -312,10 +348,22 @@ const Faculty = () => {
       <FacultyTable
         fetching={fetching}
         dataList={currentData}
+        allFacultyData={dataList}
         schoolsList={schoolsList}
         institutionsList={institutionsList}
         handleOpenModal={handleOpenModal}
         handleDelete={handleDelete}
+        selectedSchool={selectedSchool}
+        setSelectedSchool={handleSchoolChange}
+        selectedInstitution={selectedInstitution}
+        setSelectedInstitution={handleInstitutionChange}
+        selectedDivision={selectedDivision}
+        setSelectedDivision={setSelectedDivision}
+        selectedDesignation={selectedDesignation}
+        setSelectedDesignation={setSelectedDesignation}
+        selectedGender={selectedGender}
+        setSelectedGender={setSelectedGender}
+        onClearFilters={handleClearFilters}
         pagination={{
           currentPage,
           totalPages,

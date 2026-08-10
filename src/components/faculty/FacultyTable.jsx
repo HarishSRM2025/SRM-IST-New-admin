@@ -1,10 +1,44 @@
-import React from 'react';
-import { Loader2, Edit2, Trash2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Loader2, Edit2, Trash2, Filter, X } from 'lucide-react';
 import Pagination from '../common/Pagination';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
-const FacultyTable = ({ fetching, dataList, schoolsList, institutionsList = [], handleOpenModal, handleDelete, pagination }) => {
+const filterSelectStyle = {
+  padding: '8px 12px',
+  borderRadius: '8px',
+  border: '1px solid var(--border-color)',
+  fontSize: '13px',
+  color: 'var(--text-dark)',
+  backgroundColor: 'var(--bg-white)',
+  cursor: 'pointer',
+  minWidth: '150px',
+  outline: 'none',
+  transition: 'var(--transition)',
+  fontFamily: 'inherit'
+};
+
+const FacultyTable = ({
+  fetching,
+  dataList,
+  allFacultyData = [],
+  schoolsList,
+  institutionsList = [],
+  handleOpenModal,
+  handleDelete,
+  selectedSchool,
+  setSelectedSchool,
+  selectedInstitution,
+  setSelectedInstitution,
+  selectedDivision,
+  setSelectedDivision,
+  selectedDesignation,
+  setSelectedDesignation,
+  selectedGender,
+  setSelectedGender,
+  onClearFilters,
+  pagination
+}) => {
 
   const getSchoolName = (id) => {
     if (!id) return '—';
@@ -26,8 +60,185 @@ const FacultyTable = ({ fetching, dataList, schoolsList, institutionsList = [], 
     return division ? division.name : '—';
   };
 
+  // Derive unique designations dynamically from filtered/contextual faculty data
+  const uniqueDesignations = useMemo(() => {
+    const contextualFaculty = allFacultyData.filter(item => {
+      const schoolObj = schoolsList.find(s => s._id === item.school);
+      const schoolInstId = schoolObj ? (typeof schoolObj.institutionId === 'object' ? schoolObj.institutionId?._id : schoolObj.institutionId) : null;
+
+      const matchesInstitution = !selectedInstitution || item.institution === selectedInstitution || String(schoolInstId) === String(selectedInstitution);
+      const matchesSchool = !selectedSchool || item.school === selectedSchool;
+      const matchesDivision = !selectedDivision || item.schoolDivision === selectedDivision;
+      const matchesGender = !selectedGender || item.facultyGender === selectedGender;
+
+      return matchesInstitution && matchesSchool && matchesDivision && matchesGender;
+    });
+
+    const designations = contextualFaculty
+      .map(f => f.designation)
+      .filter(d => d && d.trim() !== '');
+    return [...new Set(designations)].sort();
+  }, [allFacultyData, selectedInstitution, selectedSchool, selectedDivision, selectedGender, schoolsList]);
+
+  // Get schools for the currently selected institution
+  const availableSchools = useMemo(() => {
+    if (!selectedInstitution) return [];
+    return schoolsList.filter(s => {
+      const schoolInstId = typeof s.institutionId === 'object' ? s.institutionId?._id : s.institutionId;
+      return String(schoolInstId) === String(selectedInstitution);
+    });
+  }, [selectedInstitution, schoolsList]);
+
+  // Get divisions for currently selected school
+  const availableDivisions = useMemo(() => {
+    if (!selectedSchool) return [];
+    const school = schoolsList.find(s => s._id === selectedSchool);
+    return school?.divisions || [];
+  }, [selectedSchool, schoolsList]);
+
+  const hasActiveFilters = selectedSchool || selectedInstitution || selectedDivision || selectedDesignation || selectedGender;
+
   return (
     <div className="table-container animate-fade-in">
+
+      {/* Filter Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '16px 24px',
+        borderBottom: '1px solid var(--border-color)',
+        backgroundColor: 'var(--bg-body)',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          color: 'var(--text-gray)',
+          fontSize: '13px',
+          fontWeight: '600',
+          whiteSpace: 'nowrap'
+        }}>
+          <Filter size={15} />
+          Filters
+        </div>
+
+        {/* 1. Institution Filter (always enabled) */}
+        <select
+          value={selectedInstitution}
+          onChange={(e) => setSelectedInstitution(e.target.value)}
+          style={{
+            ...filterSelectStyle,
+            borderColor: selectedInstitution ? 'var(--primary-blue)' : 'var(--border-color)',
+            backgroundColor: selectedInstitution ? 'var(--primary-blue-light)' : 'var(--bg-white)'
+          }}
+        >
+          <option value="">All Institutions</option>
+          {institutionsList.map(i => (
+            <option key={i._id} value={i._id}>{i.name}</option>
+          ))}
+        </select>
+
+        {/* 2. School Filter (enabled only when institution is selected) */}
+        <select
+          value={selectedSchool}
+          onChange={(e) => setSelectedSchool(e.target.value)}
+          disabled={!selectedInstitution}
+          style={{
+            ...filterSelectStyle,
+            borderColor: selectedSchool ? 'var(--primary-blue)' : 'var(--border-color)',
+            backgroundColor: selectedSchool ? 'var(--primary-blue-light)' : 'var(--bg-white)',
+            opacity: selectedInstitution ? 1 : 0.55,
+            cursor: selectedInstitution ? 'pointer' : 'not-allowed'
+          }}
+        >
+          <option value="">{selectedInstitution ? 'All Schools' : 'Select Institution first'}</option>
+          {availableSchools.map(s => (
+            <option key={s._id} value={s._id}>{s.name}</option>
+          ))}
+        </select>
+
+        {/* 3. Division Filter (enabled only when school is selected) */}
+        <select
+          value={selectedDivision}
+          onChange={(e) => setSelectedDivision(e.target.value)}
+          disabled={!selectedSchool}
+          style={{
+            ...filterSelectStyle,
+            borderColor: selectedDivision ? 'var(--primary-blue)' : 'var(--border-color)',
+            backgroundColor: selectedDivision ? 'var(--primary-blue-light)' : 'var(--bg-white)',
+            opacity: selectedSchool ? 1 : 0.55,
+            cursor: selectedSchool ? 'pointer' : 'not-allowed'
+          }}
+        >
+          <option value="">{selectedSchool ? 'All Divisions' : 'Select School first'}</option>
+          {availableDivisions.map(d => (
+            <option key={d._id} value={d._id}>{d.name}</option>
+          ))}
+        </select>
+
+        {/* Designation Filter */}
+        <select
+          value={selectedDesignation}
+          onChange={(e) => setSelectedDesignation(e.target.value)}
+          style={{
+            ...filterSelectStyle,
+            borderColor: selectedDesignation ? 'var(--primary-blue)' : 'var(--border-color)',
+            backgroundColor: selectedDesignation ? 'var(--primary-blue-light)' : 'var(--bg-white)'
+          }}
+        >
+          <option value="">All Designations</option>
+          {uniqueDesignations.map(d => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+
+        {/* Gender Filter */}
+        <select
+          value={selectedGender}
+          onChange={(e) => setSelectedGender(e.target.value)}
+          style={{
+            ...filterSelectStyle,
+            minWidth: '120px',
+            borderColor: selectedGender ? 'var(--primary-blue)' : 'var(--border-color)',
+            backgroundColor: selectedGender ? 'var(--primary-blue-light)' : 'var(--bg-white)'
+          }}
+        >
+          <option value="">All Genders</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+
+        {/* Clear Filters */}
+        {hasActiveFilters && (
+          <button
+            onClick={onClearFilters}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid #fca5a5',
+              backgroundColor: '#fef2f2',
+              color: '#ef4444',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'var(--transition)',
+              whiteSpace: 'nowrap',
+              fontFamily: 'inherit'
+            }}
+            title="Clear all filters"
+          >
+            <X size={14} />
+            Clear
+          </button>
+        )}
+      </div>
+
       {fetching ? (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
           <Loader2 className="animate-spin text-blue-600" size={32} />
