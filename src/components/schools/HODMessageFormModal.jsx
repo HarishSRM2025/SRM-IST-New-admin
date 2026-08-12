@@ -96,7 +96,7 @@ const HODMessageFormModal = ({
               id="hodDesignation"
               name="hodDesignation"
               className="form-input"
-              placeholder="e.g. Head of Department, CSE"
+              placeholder="e.g. Head of the Department, CSE"
               value={formData.hodDesignation}
               onChange={handleChange}
               required

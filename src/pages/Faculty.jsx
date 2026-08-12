@@ -11,6 +11,35 @@ const facultyTabs = [
   { label: 'Faculty Experience', path: '/faculty/experience', end: false }
 ];
 
+const getDesignationRank = (designation = '') => {
+  const normalized = String(designation || '').trim().toLowerCase();
+
+  if (normalized.includes('director')) return 0;
+  if (normalized.includes('dean') || normalized.includes('hod')) return 1;
+  if (normalized.includes('head')) return 2;
+  if (normalized.includes('associate professor')) return 3;
+  if (normalized.includes('professor') && !normalized.includes('assistant') && !normalized.includes('associate')) return 4;
+  if (normalized.includes('assistant professor')) return 5;
+  return 6;
+};
+
+const getExperienceValue = (value) => {
+  const parsed = Number(String(value ?? '').replace(/[^\d.-]/g, ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const sortFacultyMembers = (list = []) => {
+  return [...list].sort((a, b) => {
+    const rankDifference = getDesignationRank(a?.designation) - getDesignationRank(b?.designation);
+    if (rankDifference !== 0) return rankDifference;
+
+    const experienceDifference = getExperienceValue(b?.facultyExperience) - getExperienceValue(a?.facultyExperience);
+    if (experienceDifference !== 0) return experienceDifference;
+
+    return String(a?.facultyName || '').localeCompare(String(b?.facultyName || ''));
+  });
+};
+
 const Faculty = () => {
   const [dataList, setDataList] = useState([]);
   const [schoolsList, setSchoolsList] = useState([]);
@@ -117,13 +146,15 @@ const Faculty = () => {
       const dataRes = await fetch(`${import.meta.env.VITE_API_URL}/faculty/getfaculty`);
       if (dataRes.ok) {
         const dataJson = await dataRes.json();
+        let facultyData = [];
+
         if (Array.isArray(dataJson)) {
-          setDataList(dataJson);
+          facultyData = dataJson;
         } else if (dataJson.data) {
-          setDataList(Array.isArray(dataJson.data) ? dataJson.data : [dataJson.data]);
-        } else {
-          setDataList([]);
+          facultyData = Array.isArray(dataJson.data) ? dataJson.data : [dataJson.data];
         }
+
+        setDataList(sortFacultyMembers(facultyData));
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -343,10 +374,11 @@ const Faculty = () => {
     return matchesSearch && matchesSchool && matchesInstitution && matchesDivision && matchesDesignation && matchesGender;
   });
 
-  const totalItems = filteredDataList.length;
+  const sortedFilteredDataList = sortFacultyMembers(filteredDataList);
+  const totalItems = sortedFilteredDataList.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const currentData = filteredDataList.slice(
+  const currentData = sortedFilteredDataList.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );

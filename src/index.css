@@ -1,1 +1,13 @@
 /* index.css */
+
+:root {
+  --site-paragraph-align: justify;
+}
+
+p,
+.rich-text p,
+.content p,
+.text-block p {
+  text-align: var(--site-paragraph-align);
+  text-justify: inter-word;
+}
