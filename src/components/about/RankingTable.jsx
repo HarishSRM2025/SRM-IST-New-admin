@@ -1,6 +1,7 @@
 import React from 'react';
 import { Loader2, Edit2, Trash2 } from 'lucide-react';
 import Pagination from '../common/Pagination';
+import TableTopHeader from '../common/TableTopHeader';
 
 const RankingTable = ({
   fetching,
@@ -17,7 +18,13 @@ const RankingTable = ({
           <Loader2 className="animate-spin text-blue-600" size={32} />
         </div>
       ) : (
-        <table className="data-table">
+        <>
+          <TableTopHeader
+            totalItems={pagination?.totalItems ?? dataList.length}
+            currentPage={pagination?.currentPage ?? 1}
+            itemsPerPage={pagination?.itemsPerPage ?? 10}
+          />
+          <table className="data-table">
           <thead>
             <tr>
               <th style={{ width: '50%' }}>Title</th>
@@ -76,6 +83,7 @@ const RankingTable = ({
             )}
           </tbody>
         </table>
+        </>
       )}
 
       {!fetching && pagination && (

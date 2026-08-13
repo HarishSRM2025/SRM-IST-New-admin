@@ -1,6 +1,7 @@
 import React from 'react';
 import { Loader2, Edit2, Trash2, Video, FileText, Image as ImageIcon } from 'lucide-react';
 import Pagination from '../common/Pagination';
+import TableTopHeader from '../common/TableTopHeader';
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 const GalleryResourceTable = ({ fetching, dataList, institutionsList, handleOpenModal, handleDelete, pagination }) => {
 
@@ -77,7 +78,13 @@ const GalleryResourceTable = ({ fetching, dataList, institutionsList, handleOpen
           <Loader2 className="animate-spin text-blue-600" size={32} />
         </div>
       ) : (
-        <table className="data-table">
+        <>
+          <TableTopHeader
+            totalItems={pagination?.totalItems ?? dataList.length}
+            currentPage={pagination?.currentPage ?? 1}
+            itemsPerPage={pagination?.itemsPerPage ?? 10}
+          />
+          <table className="data-table">
           <thead>
             <tr>
               <th style={{ width: '10%' }}>Resource</th>
@@ -148,6 +155,7 @@ const GalleryResourceTable = ({ fetching, dataList, institutionsList, handleOpen
             )}
           </tbody>
         </table>
+        </>
       )}
 
       {!fetching && pagination && (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Edit2, Loader2, Trash2, ExternalLink } from 'lucide-react';
 import Pagination from '../common/Pagination';
+import TableTopHeader from '../common/TableTopHeader';
 
 const StudentTestimonialTable = ({
   fetching,
@@ -16,7 +17,13 @@ const StudentTestimonialTable = ({
           <Loader2 className="animate-spin text-blue-600" size={32} />
         </div>
       ) : (
-        <table className="data-table">
+        <>
+          <TableTopHeader
+            totalItems={pagination?.totalItems ?? dataList.length}
+            currentPage={pagination?.currentPage ?? 1}
+            itemsPerPage={pagination?.itemsPerPage ?? 10}
+          />
+          <table className="data-table">
           <thead>
             <tr>
               <th style={{ width: '15%' }}>Thumbnail</th>
@@ -95,6 +102,7 @@ const StudentTestimonialTable = ({
             )}
           </tbody>
         </table>
+        </>
       )}
 
       {!fetching && pagination && (
