@@ -4,6 +4,7 @@ import { Edit2, ImagePlus, Loader2, Save, Trash2, Upload, X } from 'lucide-react
 import InstitutionHeader from '../components/institution/InstitutionHeader';
 import InstitutionDeleteModal from '../components/institution/InstitutionDeleteModal';
 import Pagination from '../components/common/Pagination';
+import TableTopHeader from '../components/common/TableTopHeader';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const API_BASE = API_URL.replace('/api', '');
@@ -181,75 +182,83 @@ const SliderTable = ({ fetching, dataList, handleOpenModal, handleDelete, pagina
         <Loader2 className="animate-spin text-blue-600" size={32} />
       </div>
     ) : (
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th style={{ width: '12%' }}>Image</th>
-            <th style={{ width: '16%' }}>Tag Line</th>
-            <th style={{ width: '22%' }}>Title</th>
-            <th style={{ width: '28%' }}>Description</th>
-            <th style={{ width: '8%' }}>Status</th>
-            <th style={{ width: '14%', textAlign: 'center' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {dataList.length > 0 ? dataList.map((item) => (
-            <tr key={item._id}>
-              <td>
-                {getImageUrl(item.image) ? (
-                  <img src={getImageUrl(item.image)} alt={item.title} style={{ width: 72, height: 46, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border-color)' }} />
-                ) : (
-                  <div style={{ width: 72, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: '1px solid var(--border-color)', color: 'var(--text-light)' }}>
-                    <ImagePlus size={18} />
-                  </div>
-                )}
-              </td>
-              <td>{item.tagLine}</td>
-              <td><strong>{item.title}</strong></td>
-              <td>
-                <span style={{ color: 'var(--text-gray)', fontSize: 13 }}>
-                  {item.description?.length > 110 ? `${item.description.slice(0, 110)}...` : item.description}
-                </span>
-              </td>
-              <td>
-                <span style={{
-                  fontSize: 11,
-                  padding: '2px 8px',
-                  borderRadius: 12,
-                  textTransform: 'capitalize',
-                  fontWeight: 600,
-                  background: item.sliderStatus === 'active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
-                  color: item.sliderStatus === 'active' ? '#10b981' : '#6b7280',
-                  border: item.sliderStatus === 'active' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(107, 114, 128, 0.2)',
-                }}>
-                  {item.sliderStatus}
-                </span>
-              </td>
-              <td style={{ textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-                  <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={() => handleOpenModal(item)}>
-                    <Edit2 size={16} /> Edit
-                  </button>
-                  <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={() => handleDelete(item._id)}>
-                    <Trash2 size={16} /> Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          )) : (
+      <>
+        <TableTopHeader
+          totalItems={pagination?.totalItems ?? dataList.length}
+          currentPage={pagination?.currentPage ?? 1}
+          itemsPerPage={pagination?.itemsPerPage ?? 10}
+        />
+        <table className="data-table">
+          <thead>
             <tr>
-              <td colSpan="6" style={{ textAlign: 'center', padding: 32, color: 'var(--text-gray)' }}>
-                No sliders available. Click "New Slider" to create one.
-              </td>
+              <th style={{ width: '12%' }}>Image</th>
+              <th style={{ width: '16%' }}>Tag Line</th>
+              <th style={{ width: '22%' }}>Title</th>
+              <th style={{ width: '28%' }}>Description</th>
+              <th style={{ width: '8%' }}>Status</th>
+              <th style={{ width: '14%', textAlign: 'center' }}>Actions</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {dataList.length > 0 ? dataList.map((item) => (
+              <tr key={item._id}>
+                <td>
+                  {getImageUrl(item.image) ? (
+                    <img src={getImageUrl(item.image)} alt={item.title} style={{ width: 72, height: 46, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border-color)' }} />
+                  ) : (
+                    <div style={{ width: 72, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: '1px solid var(--border-color)', color: 'var(--text-light)' }}>
+                      <ImagePlus size={18} />
+                    </div>
+                  )}
+                </td>
+                <td>{item.tagLine}</td>
+                <td><strong>{item.title}</strong></td>
+                <td>
+                  <span style={{ color: 'var(--text-gray)', fontSize: 13 }}>
+                    {item.description?.length > 110 ? `${item.description.slice(0, 110)}...` : item.description}
+                  </span>
+                </td>
+                <td>
+                  <span style={{
+                    fontSize: 11,
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    textTransform: 'capitalize',
+                    fontWeight: 600,
+                    background: item.sliderStatus === 'active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                    color: item.sliderStatus === 'active' ? '#10b981' : '#6b7280',
+                    border: item.sliderStatus === 'active' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(107, 114, 128, 0.2)',
+                  }}>
+                    {item.sliderStatus}
+                  </span>
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+                    <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={() => handleOpenModal(item)}>
+                      <Edit2 size={16} /> Edit
+                    </button>
+                    <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={() => handleDelete(item._id)}>
+                      <Trash2 size={16} /> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: 32, color: 'var(--text-gray)' }}>
+                  No sliders available. Click "New Slider" to create one.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </>
     )}
 
     {!fetching && pagination && <Pagination {...pagination} />}
   </div>
 );
+
 
 const Slider = () => {
   const [dataList, setDataList] = useState([]);
