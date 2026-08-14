@@ -15,11 +15,13 @@ const EMPTY_FORM = {
   facultyId: '',
   awards_and_achievements: [],
   publications: [],
+  invited_lectures: [],
+  fundedProject: [],
+  professional_memberships: [],
   patents: [],
   grants: [],
   conferences: [],
   workshop: [],
-  fundedProject: [],
 };
 
 const getFacultyId = (facultyId) => (
@@ -83,11 +85,13 @@ const FacultyResearch = () => {
         facultyId: getFacultyId(item.facultyId) || '',
         awards_and_achievements: item.awards_and_achievements || [],
         publications: item.publications || [],
+        invited_lectures: item.invited_lectures || item.invitedLectures || [],
+        fundedProject: item.fundedProject || item.fundedProjects || [],
+        professional_memberships: item.professional_memberships || item.professionalMemberships || [],
         patents: item.patents || [],
         grants: item.grants || [],
         conferences: item.conferences || [],
         workshop: item.workshop || [],
-        fundedProject: item.fundedProject || [],
       });
     } else {
       resetForm();

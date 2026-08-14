@@ -13,6 +13,7 @@ const facultyTabs = [
 
 const EMPTY_FORM = {
   facultyId: '',
+  workExperience: [],
   industryExperience: [],
 };
 
@@ -70,16 +71,19 @@ const FacultyExperience = () => {
 
   const handleOpenModal = (item = null) => {
     if (item) {
+      const exp = item.workExperience?.length ? item.workExperience : (item.industryExperience || []);
       setFormData({
         _id: item._id,
         facultyId: getFacultyId(item.facultyId) || '',
-        industryExperience: item.industryExperience || [],
+        workExperience: exp,
+        industryExperience: exp,
       });
     } else {
       resetForm();
     }
     setIsModalOpen(true);
   };
+
 
   const handleCloseModal = () => {
     setIsModalOpen(false);

@@ -1,76 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Save, Loader2, X, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Save, Loader2, X, Plus, Trash2, ClipboardPaste, List } from 'lucide-react';
 
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace('/api', '');
 
 const TABS = [
-  { key: 'awards_and_achievements', label: 'Awards' },
-  { key: 'publications', label: 'Publications' },
-  { key: 'patents', label: 'Patents' },
-  { key: 'grants', label: 'Grants' },
-  { key: 'conferences', label: 'Conferences' },
-  { key: 'workshop', label: 'Workshops' },
-  { key: 'fundedProject', label: 'Funded Projects' },
+  { key: 'publications', label: 'Publications', placeholder: 'Paste publications here (one per line):&#10;• Deep Learning Approaches for Medical Image Analysis, IEEE Trans 2023&#10;• Real-Time Object Detection on Edge Devices, Springer 2022' },
+  { key: 'awards_and_achievements', label: 'Awards & Achievements', placeholder: 'Paste awards/achievements here (one per line):&#10;• Best Researcher Award 2023 by National Science Forum&#10;• Outstanding Faculty Award 2021, SRM IST' },
+  { key: 'invited_lectures', label: 'Invited Lectures', placeholder: 'Paste invited lectures here (one per line):&#10;• Keynote Speaker on AI in Healthcare at Global Tech Summit 2023&#10;• Guest Lecture on Deep Learning at IIT Madras' },
+  { key: 'fundedProject', label: 'Funded Projects', placeholder: 'Paste funded projects here (one per line):&#10;• AI for Smart Agriculture - DST Grant (Rs. 25 Lakhs, 2022-2025)&#10;• IoT-based Smart Grid Monitoring - SERB (Rs. 18 Lakhs, 2021-2024)' },
+  { key: 'professional_memberships', label: 'Professional Society Membership', placeholder: 'Paste memberships here (one per line):&#10;• Senior Member, IEEE (Institute of Electrical and Electronics Engineers)&#10;• Life Member, CSI (Computer Society of India)&#10;• Member, ACM' },
+  { key: 'patents', label: 'Patents', placeholder: 'Paste patent details here (one per line):&#10;• Automated Crop Disease Detection System (Patent No: 202241012345)&#10;• Smart Traffic Flow Optimization System' },
+  { key: 'grants', label: 'Grants', placeholder: 'Paste grants here (one per line)...' },
+  { key: 'conferences', label: 'Conferences', placeholder: 'Paste conference papers/presentations here (one per line)...' },
+  { key: 'workshop', label: 'Workshops', placeholder: 'Paste workshops attended/conducted here (one per line)...' },
 ];
-
-const FIELD_DEFS = {
-  awards_and_achievements: [
-    { key: 'awardName', label: 'Award Name', type: 'text' },
-    { key: 'awardDate', label: 'Date', type: 'date' },
-    { key: 'awardBy', label: 'Awarded By', type: 'text' },
-    { key: 'awardLocation', label: 'Location', type: 'text' },
-  ],
-  publications: [
-    { key: 'title', label: 'Title', type: 'text' },
-    { key: 'journal', label: 'Journal', type: 'text' },
-    { key: 'year', label: 'Year', type: 'number' },
-    { key: 'coAuthors', label: 'Co-Authors', type: 'text' },
-  ],
-  patents: [
-    { key: 'patentName', label: 'Patent Name', type: 'text' },
-    { key: 'patentNumber', label: 'Patent Number', type: 'text' },
-    { key: 'country', label: 'Country', type: 'text' },
-    { key: 'year', label: 'Year', type: 'number' },
-    { key: 'status', label: 'Status', type: 'text' },
-  ],
-  grants: [
-    { key: 'grantTitle', label: 'Grant Title', type: 'text' },
-    { key: 'fundingAgency', label: 'Funding Agency', type: 'text' },
-    { key: 'amount', label: 'Amount', type: 'number' },
-    { key: 'year', label: 'Year', type: 'number' },
-    { key: 'status', label: 'Status', type: 'text' },
-  ],
-  conferences: [
-    { key: 'conferenceName', label: 'Conference Name', type: 'text' },
-    { key: 'conferenceLocation', label: 'Location', type: 'text' },
-    { key: 'conferenceDate', label: 'Date', type: 'date' },
-    { key: 'paperPresented', label: 'Paper Presented', type: 'text' },
-  ],
-  workshop: [
-    { key: 'workshopName', label: 'Workshop Name', type: 'text' },
-    { key: 'workshopLocation', label: 'Location', type: 'text' },
-    { key: 'workshopDate', label: 'Date', type: 'date' },
-  ],
-  fundedProject: [
-    { key: 'projectName', label: 'Project Name', type: 'text' },
-    { key: 'fundingAgency', label: 'Funding Agency', type: 'text' },
-    { key: 'amount', label: 'Amount', type: 'number' },
-    { key: 'year', label: 'Year', type: 'number' },
-    { key: 'status', label: 'Status', type: 'text' },
-  ],
-};
-
-const emptyRow = (tabKey) => {
-  const row = {};
-  FIELD_DEFS[tabKey].forEach(f => { row[f.key] = ''; });
-  return row;
-};
-
-const toDateInputValue = (value) => {
-  if (!value) return '';
-  return String(value).slice(0, 10);
-};
 
 const getId = (value) => (
   typeof value === 'object' && value !== null ? value._id : value
@@ -94,6 +38,41 @@ const getInitials = (name = '') => (
     .toUpperCase() || 'F'
 );
 
+const parseTextToPoints = (text) => {
+  if (!text) return [];
+  return text
+    .split(/\r?\n/)
+    .map(line => line.replace(/^[\s•*\-–—\d.)]+/, '').trim())
+    .filter(Boolean);
+};
+
+const formatItemText = (item) => {
+  if (typeof item === 'string') return item;
+  if (!item) return '';
+  if (item.title) {
+    return [item.title, item.journal, item.year, item.coAuthors].filter(Boolean).join(' - ');
+  }
+  if (item.awardName) {
+    return [item.awardName, item.awardBy, item.awardDate ? String(item.awardDate).slice(0, 10) : ''].filter(Boolean).join(' - ');
+  }
+  if (item.projectName) {
+    return [item.projectName, item.fundingAgency, item.amount ? `Rs. ${item.amount}` : '', item.year].filter(Boolean).join(' - ');
+  }
+  if (item.patentName) {
+    return [item.patentName, item.patentNumber, item.country, item.year].filter(Boolean).join(' - ');
+  }
+  if (item.conferenceName) {
+    return [item.conferenceName, item.conferenceLocation, item.paperPresented].filter(Boolean).join(' - ');
+  }
+  if (item.workshopName) {
+    return [item.workshopName, item.workshopLocation].filter(Boolean).join(' - ');
+  }
+  if (item.grantTitle) {
+    return [item.grantTitle, item.fundingAgency, item.amount ? `Rs. ${item.amount}` : '', item.year].filter(Boolean).join(' - ');
+  }
+  return Object.values(item).filter(v => typeof v === 'string').join(' - ');
+};
+
 const FacultyResearchFormModal = ({
   isModalOpen,
   handleCloseModal,
@@ -105,9 +84,29 @@ const FacultyResearchFormModal = ({
   facultyList,
   schoolsList = [],
 }) => {
-  const [activeTab, setActiveTab] = useState('awards_and_achievements');
+  const [activeTab, setActiveTab] = useState('publications');
   const [isFacultyOpen, setIsFacultyOpen] = useState(false);
   const [facultySearch, setFacultySearch] = useState('');
+  const [rawTexts, setRawTexts] = useState({});
+  const [modes, setModes] = useState({}); // tabKey -> 'text' | 'points'
+
+  const currentTabDef = TABS.find(t => t.key === activeTab) || TABS[0];
+
+  const getPointsForTab = (tabKey) => {
+    const items = formData[tabKey] || [];
+    return items.map(formatItemText).filter(Boolean);
+  };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      const initialRaw = {};
+      TABS.forEach(tab => {
+        const points = getPointsForTab(tab.key);
+        initialRaw[tab.key] = points.join('\n');
+      });
+      setRawTexts(initialRaw);
+    }
+  }, [isModalOpen, formData._id]);
 
   if (!isModalOpen) return null;
 
@@ -135,49 +134,67 @@ const FacultyResearchFormModal = ({
     setFacultySearch('');
   };
 
-  const handleAddRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      [activeTab]: [...(prev[activeTab] || []), emptyRow(activeTab)]
-    }));
+  const handleRawTextChange = (tabKey, text) => {
+    setRawTexts(prev => ({ ...prev, [tabKey]: text }));
+    const parsed = parseTextToPoints(text);
+    setFormData(prev => ({ ...prev, [tabKey]: parsed }));
   };
 
-  const handleFieldChange = (tabKey, index, fieldKey, value) => {
-    setFormData(prev => {
-      const updated = [...(prev[tabKey] || [])];
-      updated[index] = { ...updated[index], [fieldKey]: value };
-      return { ...prev, [tabKey]: updated };
-    });
+  const handlePointChange = (tabKey, index, value) => {
+    const current = getPointsForTab(tabKey);
+    const updated = [...current];
+    updated[index] = value;
+    const filtered = updated.filter(Boolean);
+    setFormData(prev => ({ ...prev, [tabKey]: updated }));
+    setRawTexts(prev => ({ ...prev, [tabKey]: filtered.join('\n') }));
   };
 
-  const handleRemoveRow = (tabKey, index) => {
-    setFormData(prev => ({
+  const handleRemovePoint = (tabKey, index) => {
+    const current = getPointsForTab(tabKey);
+    const updated = current.filter((_, i) => i !== index);
+    setFormData(prev => ({ ...prev, [tabKey]: updated }));
+    setRawTexts(prev => ({ ...prev, [tabKey]: updated.join('\n') }));
+  };
+
+  const handleAddPoint = (tabKey) => {
+    const current = getPointsForTab(tabKey);
+    const updated = [...current, ''];
+    setFormData(prev => ({ ...prev, [tabKey]: updated }));
+    setModes(prev => ({ ...prev, [tabKey]: 'points' }));
+  };
+
+  const toggleMode = (tabKey) => {
+    setModes(prev => ({
       ...prev,
-      [tabKey]: (prev[tabKey] || []).filter((_, i) => i !== index)
+      [tabKey]: (prev[tabKey] || 'text') === 'text' ? 'points' : 'text'
     }));
   };
 
   const tabStyle = (key) => ({
-    padding: '8px 16px',
+    padding: '8px 14px',
     fontSize: '13px',
     fontWeight: activeTab === key ? '600' : '400',
     background: activeTab === key ? 'var(--primary-blue)' : '#fff',
     color: activeTab === key ? '#fff' : 'var(--text-gray)',
     border: activeTab === key ? '1px solid var(--primary-blue)' : '1px solid var(--border-color)',
-    borderRadius: '6px',
+    borderRadius: '8px',
     cursor: 'pointer',
     transition: 'all 0.2s',
     whiteSpace: 'nowrap',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px'
   });
 
-  const currentItems = formData[activeTab] || [];
-  const fields = FIELD_DEFS[activeTab];
+  const activePoints = getPointsForTab(activeTab);
+  const activeMode = modes[activeTab] || 'text';
+  const activeRawText = rawTexts[activeTab] !== undefined ? rawTexts[activeTab] : activePoints.join('\n');
 
   return createPortal(
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div className="modal-content" style={{ maxWidth: '920px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="modal-header">
-          <h2 className="modal-title">{formData._id ? 'Edit Research' : 'Add Research'}</h2>
+          <h2 className="modal-title">{formData._id ? 'Edit Faculty Research' : 'Add Faculty Research'}</h2>
           <button className="modal-close" onClick={handleCloseModal}>
             <X size={24} />
           </button>
@@ -191,7 +208,7 @@ const FacultyResearchFormModal = ({
 
         <form onSubmit={handleSubmit}>
           {/* Faculty Selector */}
-          <div className="form-group" style={{ marginBottom: '22px', position: 'relative' }}>
+          <div className="form-group" style={{ marginBottom: '20px', position: 'relative' }}>
             <label className="form-label" htmlFor="facultyId">Faculty Member</label>
             <input
               id="facultyId"
@@ -347,90 +364,150 @@ const FacultyResearchFormModal = ({
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-            {TABS.map(tab => (
-              <button
-                type="button"
-                key={tab.key}
-                style={tabStyle(tab.key)}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-                {(formData[tab.key] || []).length > 0 && (
-                  <span style={{
-                    marginLeft: '6px', background: activeTab === tab.key ? 'rgba(255,255,255,0.3)' : 'var(--primary-blue-light)',
-                    color: activeTab === tab.key ? '#fff' : 'var(--primary-blue)',
-                    padding: '1px 7px', borderRadius: '10px', fontSize: '11px', fontWeight: '700'
-                  }}>
-                    {(formData[tab.key] || []).length}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
+            {TABS.map(tab => {
+              const count = getPointsForTab(tab.key).length;
+              return (
+                <button
+                  type="button"
+                  key={tab.key}
+                  style={tabStyle(tab.key)}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {tab.label}
+                  {count > 0 && (
+                    <span style={{
+                      marginLeft: '4px',
+                      background: activeTab === tab.key ? 'rgba(255,255,255,0.3)' : 'var(--primary-blue-light)',
+                      color: activeTab === tab.key ? '#fff' : 'var(--primary-blue)',
+                      padding: '1px 7px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
+                      fontWeight: '700'
+                    }}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Tab Content - Dynamic Rows */}
-          <div>
-            {currentItems.map((item, idx) => (
-              <div key={idx} style={{
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '14px',
-                marginBottom: '12px',
-                background: 'var(--bg-body)',
-                position: 'relative',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                    {TABS.find(t => t.key === activeTab)?.label} #{idx + 1}
-                  </span>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    style={{ padding: '4px 8px' }}
-                    onClick={() => handleRemoveRow(activeTab, idx)}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: fields.length > 4 ? '1fr 1fr 1fr 1fr' : `repeat(${fields.length}, 1fr)`, gap: '8px' }}>
-                  {fields.map(field => (
-                    <div key={field.key}>
-                      <label style={{ fontSize: '11px', color: 'var(--text-gray)', fontWeight: '500', marginBottom: '2px', display: 'block' }}>
-                        {field.label}
-                      </label>
-                      <input
-                        type={field.type}
-                        className="form-input"
-                        placeholder={field.label}
-                        value={field.type === 'date' ? toDateInputValue(item[field.key]) : (item[field.key] || '')}
-                        onChange={(e) => handleFieldChange(activeTab, idx, field.key, e.target.value)}
-                        style={{ fontSize: '13px' }}
-                      />
-                    </div>
-                  ))}
+          {/* Active Tab Panel */}
+          <div style={{
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '18px',
+            background: '#fafbfc',
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div>
+                <label className="form-label" style={{ marginBottom: '2px', fontWeight: 700, fontSize: '14px' }}>
+                  {currentTabDef.label} Points
+                </label>
+                <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
+                  Paste points below (e.g. 5 points, one per line). Leave empty if not applicable.
                 </div>
               </div>
-            ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  background: activePoints.length > 0 ? '#dbeafe' : '#f3f4f6',
+                  color: activePoints.length > 0 ? '#1d4ed8' : '#6b7280',
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 600
+                }}>
+                  {activePoints.length} {activePoints.length === 1 ? 'point' : 'points'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleMode(activeTab)}
+                  className="btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  {activeMode === 'text' ? <List size={13} /> : <ClipboardPaste size={13} />}
+                  {activeMode === 'text' ? 'List View' : 'Text Area'}
+                </button>
+              </div>
+            </div>
 
-            <button
-              type="button"
-              className="btn-secondary"
-              style={{ padding: '8px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              onClick={handleAddRow}
-            >
-              <Plus size={14} /> Add {TABS.find(t => t.key === activeTab)?.label}
-            </button>
+            {activeMode === 'text' ? (
+              <div>
+                <textarea
+                  className="form-input"
+                  rows={6}
+                  placeholder={currentTabDef.placeholder.replace(/&#10;/g, '\n')}
+                  value={activeRawText}
+                  onChange={(e) => handleRawTextChange(activeTab, e.target.value)}
+                  style={{ fontSize: '13px', lineHeight: '1.6', fontFamily: 'inherit' }}
+                />
+              </div>
+            ) : (
+              <div>
+                {activePoints.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-gray)', fontSize: '13px' }}>
+                    No points added yet for {currentTabDef.label}. Switch to "Text Area" to paste points or click "+ Add Point".
+                  </div>
+                ) : (
+                  activePoints.map((point, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#e0e7ff',
+                        color: '#4338ca',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        flexShrink: 0
+                      }}>
+                        {index + 1}
+                      </span>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={point}
+                        onChange={(e) => handlePointChange(activeTab, index, e.target.value)}
+                        placeholder={`Point ${index + 1}`}
+                        style={{ fontSize: '13px' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        style={{ padding: '6px 8px', flexShrink: 0 }}
+                        onClick={() => handleRemovePoint(activeTab, index)}
+                        title="Remove point"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))
+                )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => handleAddPoint(activeTab)}
+                  style={{ marginTop: '8px', padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={14} /> Add Point
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
             <button type="button" className="btn-secondary" onClick={handleCloseModal} disabled={loading}>
               Cancel
             </button>
             <button type="submit" className="btn-primary" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {loading ? 'Saving...' : formData._id ? 'Update Research' : 'Add Research'}
+              {loading ? 'Saving...' : formData._id ? 'Update Research' : 'Save Research'}
             </button>
           </div>
         </form>

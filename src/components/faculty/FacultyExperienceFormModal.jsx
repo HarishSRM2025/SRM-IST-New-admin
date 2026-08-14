@@ -1,20 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Loader2, Plus, Save, Trash2, X } from 'lucide-react';
+import { ChevronDown, Loader2, Plus, Save, Trash2, X, ClipboardPaste, List } from 'lucide-react';
 
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace('/api', '');
-
-const emptyExperience = {
-  companyName: '',
-  role: '',
-  startDate: '',
-  endDate: '',
-};
-
-const toDateInputValue = (value) => {
-  if (!value) return '';
-  return String(value).slice(0, 10);
-};
 
 const getId = (value) => (
   typeof value === 'object' && value !== null ? value._id : value
@@ -38,6 +26,23 @@ const getInitials = (name = '') => (
     .toUpperCase() || 'F'
 );
 
+const parseTextToPoints = (text) => {
+  if (!text) return [];
+  return text
+    .split(/\r?\n/)
+    .map(line => line.replace(/^[\s•*\-–—\d.)]+/, '').trim())
+    .filter(Boolean);
+};
+
+const formatItemText = (item) => {
+  if (typeof item === 'string') return item;
+  if (!item) return '';
+  if (item.companyName || item.role) {
+    return [item.role, item.companyName].filter(Boolean).join(' at ');
+  }
+  return Object.values(item).filter(v => typeof v === 'string').join(' - ');
+};
+
 const FacultyExperienceFormModal = ({
   isModalOpen,
   handleCloseModal,
@@ -51,10 +56,24 @@ const FacultyExperienceFormModal = ({
 }) => {
   const [isFacultyOpen, setIsFacultyOpen] = useState(false);
   const [facultySearch, setFacultySearch] = useState('');
+  const [rawText, setRawText] = useState('');
+  const [mode, setMode] = useState('text'); // 'text' | 'points'
+
+  const currentPoints = (formData.workExperience?.length ? formData.workExperience : (formData.industryExperience || []))
+    .map(formatItemText)
+    .filter(Boolean);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      const points = (formData.workExperience?.length ? formData.workExperience : (formData.industryExperience || []))
+        .map(formatItemText)
+        .filter(Boolean);
+      setRawText(points.join('\n'));
+    }
+  }, [isModalOpen, formData._id]);
 
   if (!isModalOpen) return null;
 
-  const experiences = formData.industryExperience || [];
   const getSchoolName = (faculty) => {
     if (faculty?.school && typeof faculty.school === 'object') return faculty.school.name || 'Department not set';
     return schoolsList.find(school => school._id === getId(faculty?.school))?.name || 'Department not set';
@@ -79,33 +98,54 @@ const FacultyExperienceFormModal = ({
     setFacultySearch('');
   };
 
-  const updateExperience = (index, key, value) => {
-    setFormData(prev => {
-      const updated = [...(prev.industryExperience || [])];
-      updated[index] = { ...updated[index], [key]: value };
-      return { ...prev, industryExperience: updated };
-    });
-  };
-
-  const addExperience = () => {
+  const handleRawTextChange = (e) => {
+    const text = e.target.value;
+    setRawText(text);
+    const parsed = parseTextToPoints(text);
     setFormData(prev => ({
       ...prev,
-      industryExperience: [...(prev.industryExperience || []), { ...emptyExperience }],
+      workExperience: parsed,
+      industryExperience: parsed,
     }));
   };
 
-  const removeExperience = (index) => {
+  const handlePointChange = (index, value) => {
+    const updated = [...currentPoints];
+    updated[index] = value;
+    const filtered = updated.filter(Boolean);
     setFormData(prev => ({
       ...prev,
-      industryExperience: (prev.industryExperience || []).filter((_, itemIndex) => itemIndex !== index),
+      workExperience: updated,
+      industryExperience: updated,
     }));
+    setRawText(filtered.join('\n'));
+  };
+
+  const handleRemovePoint = (index) => {
+    const updated = currentPoints.filter((_, i) => i !== index);
+    setFormData(prev => ({
+      ...prev,
+      workExperience: updated,
+      industryExperience: updated,
+    }));
+    setRawText(updated.join('\n'));
+  };
+
+  const handleAddPoint = () => {
+    const updated = [...currentPoints, ''];
+    setFormData(prev => ({
+      ...prev,
+      workExperience: updated,
+      industryExperience: updated,
+    }));
+    setMode('points');
   };
 
   return createPortal(
     <div className="modal-overlay">
       <div className="modal-content" style={{ maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="modal-header">
-          <h2 className="modal-title">{formData._id ? 'Edit Experience' : 'Add Experience'}</h2>
+          <h2 className="modal-title">{formData._id ? 'Edit Work Experience' : 'Add Work Experience'}</h2>
           <button className="modal-close" onClick={handleCloseModal}>
             <X size={24} />
           </button>
@@ -118,7 +158,8 @@ const FacultyExperienceFormModal = ({
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ position: 'relative' }}>
+          {/* Faculty Select */}
+          <div className="form-group" style={{ position: 'relative', marginBottom: '20px' }}>
             <label className="form-label" htmlFor="facultyId">Faculty Member</label>
             <input
               id="facultyId"
@@ -274,46 +315,118 @@ const FacultyExperienceFormModal = ({
             )}
           </div>
 
-          {experiences.map((experience, index) => (
-            <div key={index} style={{ border: '1px solid var(--border-color)', borderRadius: '10px', padding: '16px', marginBottom: '12px', background: 'var(--bg-body)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <strong style={{ fontSize: '13px' }}>Industry Experience #{index + 1}</strong>
-                <button type="button" className="btn-danger" style={{ padding: '4px 8px' }} onClick={() => removeExperience(index)}>
-                  <Trash2 size={14} />
+          {/* Work Experience Section */}
+          <div style={{
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '18px',
+            background: '#fafbfc',
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div>
+                <label className="form-label" style={{ marginBottom: '2px', fontWeight: 700, fontSize: '14px' }}>
+                  Work Experience Points
+                </label>
+                <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
+                  Paste points below (e.g. 5 points, one per line or bulleted). If left empty, it will remain empty.
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  background: currentPoints.length > 0 ? '#dbeafe' : '#f3f4f6',
+                  color: currentPoints.length > 0 ? '#1d4ed8' : '#6b7280',
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 600
+                }}>
+                  {currentPoints.length} {currentPoints.length === 1 ? 'point' : 'points'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMode(prev => prev === 'text' ? 'points' : 'text')}
+                  className="btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  {mode === 'text' ? <List size={13} /> : <ClipboardPaste size={13} />}
+                  {mode === 'text' ? 'List View' : 'Text Area'}
                 </button>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label className="form-label">Company Name</label>
-                  <input className="form-input" value={experience.companyName || ''} onChange={(event) => updateExperience(index, 'companyName', event.target.value)} />
-                </div>
-                <div>
-                  <label className="form-label">Role</label>
-                  <input className="form-input" value={experience.role || ''} onChange={(event) => updateExperience(index, 'role', event.target.value)} />
-                </div>
-                <div>
-                  <label className="form-label">Start Date</label>
-                  <input type="date" className="form-input" value={toDateInputValue(experience.startDate)} onChange={(event) => updateExperience(index, 'startDate', event.target.value)} />
-                </div>
-                <div>
-                  <label className="form-label">End Date</label>
-                  <input type="date" className="form-input" value={toDateInputValue(experience.endDate)} onChange={(event) => updateExperience(index, 'endDate', event.target.value)} />
-                </div>
-              </div>
-
             </div>
-          ))}
 
-          <button type="button" className="btn-secondary" onClick={addExperience}>
-            <Plus size={14} /> Add Industry Experience
-          </button>
+            {mode === 'text' ? (
+              <div>
+                <textarea
+                  className="form-input"
+                  rows={6}
+                  placeholder="Paste your 5 points here (one point per line):&#10;• Senior Software Engineer at Tech Corp (2020 - 2023)&#10;• Lead AI Researcher at SRM IST (2018 - 2020)&#10;• Systems Architect at Global Solutions..."
+                  value={rawText}
+                  onChange={handleRawTextChange}
+                  style={{ fontSize: '13px', lineHeight: '1.6', fontFamily: 'inherit' }}
+                />
+              </div>
+            ) : (
+              <div>
+                {currentPoints.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-gray)', fontSize: '13px' }}>
+                    No points added yet. Switch to "Text Area" to paste points or click "+ Add Point".
+                  </div>
+                ) : (
+                  currentPoints.map((point, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#e0e7ff',
+                        color: '#4338ca',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        flexShrink: 0
+                      }}>
+                        {index + 1}
+                      </span>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={point}
+                        onChange={(e) => handlePointChange(index, e.target.value)}
+                        placeholder={`Point ${index + 1}`}
+                        style={{ fontSize: '13px' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        style={{ padding: '6px 8px', flexShrink: 0 }}
+                        onClick={() => handleRemovePoint(index)}
+                        title="Remove point"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))
+                )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handleAddPoint}
+                  style={{ marginTop: '8px', padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={14} /> Add Point
+                </button>
+              </div>
+            )}
+          </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
             <button type="button" className="btn-secondary" onClick={handleCloseModal} disabled={loading}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {loading ? 'Saving...' : formData._id ? 'Update Experience' : 'Add Experience'}
+              {loading ? 'Saving...' : formData._id ? 'Update Experience' : 'Save Experience'}
             </button>
           </div>
         </form>
