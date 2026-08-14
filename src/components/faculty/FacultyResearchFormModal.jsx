@@ -401,7 +401,7 @@ const FacultyResearchFormModal = ({
             background: '#fafbfc',
             marginBottom: '20px'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <label className="form-label" style={{ marginBottom: '2px', fontWeight: 700, fontSize: '14px' }}>
                   {currentTabDef.label} Points
@@ -410,7 +410,7 @@ const FacultyResearchFormModal = ({
                   Paste points below (e.g. 5 points, one per line). Leave empty if not applicable.
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{
                   background: activePoints.length > 0 ? '#dbeafe' : '#f3f4f6',
                   color: activePoints.length > 0 ? '#1d4ed8' : '#6b7280',
@@ -421,6 +421,7 @@ const FacultyResearchFormModal = ({
                 }}>
                   {activePoints.length} {activePoints.length === 1 ? 'point' : 'points'}
                 </span>
+
                 <button
                   type="button"
                   onClick={() => toggleMode(activeTab)}

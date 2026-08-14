@@ -368,6 +368,7 @@ const FacultyFormModal = ({
             </button>
           </div> */}
 
+          {/* Subjects */}
           <div className="form-group">
             <label className="form-label">Subjects</label>
             <textarea
@@ -401,6 +402,8 @@ const FacultyFormModal = ({
               style={{ minHeight: '80px' }}
             />
           </div>
+
+
 
           {/* Education Details */}
           <div className="form-group">

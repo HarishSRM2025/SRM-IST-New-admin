@@ -323,7 +323,7 @@ const FacultyExperienceFormModal = ({
             background: '#fafbfc',
             marginBottom: '20px'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <label className="form-label" style={{ marginBottom: '2px', fontWeight: 700, fontSize: '14px' }}>
                   Work Experience Points
@@ -332,7 +332,7 @@ const FacultyExperienceFormModal = ({
                   Paste points below (e.g. 5 points, one per line or bulleted). If left empty, it will remain empty.
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{
                   background: currentPoints.length > 0 ? '#dbeafe' : '#f3f4f6',
                   color: currentPoints.length > 0 ? '#1d4ed8' : '#6b7280',
@@ -343,6 +343,7 @@ const FacultyExperienceFormModal = ({
                 }}>
                   {currentPoints.length} {currentPoints.length === 1 ? 'point' : 'points'}
                 </span>
+
                 <button
                   type="button"
                   onClick={() => setMode(prev => prev === 'text' ? 'points' : 'text')}
