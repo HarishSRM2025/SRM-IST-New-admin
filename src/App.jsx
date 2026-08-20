@@ -19,7 +19,6 @@ import DivisionEventsAndActivities from './pages/DivisionEventsAndActivities';
 import FacultyLayout from './pages/FacultyLayout';
 import Faculty from './pages/Faculty';
 import FacultyResearch from './pages/FacultyResearch';
-import FacultyExperience from './pages/FacultyExperience';
 import ResearchCenter from './pages/ResearchCenter';
 import ResearchFacultyMembers from './pages/ResearchFacultyMembers';
 import ResearchStudentMembers from './pages/ResearchStudentMembers';
@@ -269,7 +268,7 @@ function App() {
           <Route path="faculty" element={<FacultyLayout />}>
             <Route index element={<Faculty />} />
             <Route path="research" element={<FacultyResearch />} />
-            <Route path="experience" element={<FacultyExperience />} />
+            <Route path="experience" element={<Navigate to="/faculty/research" replace />} />
           </Route>
           <Route path="research" element={<ResearchCenter />} />
           <Route path="research/faculty-members" element={<ResearchFacultyMembers />} />

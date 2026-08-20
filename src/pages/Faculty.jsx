@@ -7,20 +7,25 @@ import SubNav from '../components/common/SubNav';
 
 const facultyTabs = [
   { label: 'Faculty Details', path: '/faculty', end: true },
-  { label: 'Faculty Research', path: '/faculty/research', end: false },
-  { label: 'Faculty Experience', path: '/faculty/experience', end: false }
+  { label: 'Faculty Research & Work Experience', path: '/faculty/research', end: false },
 ];
 
 const getDesignationRank = (designation = '') => {
   const normalized = String(designation || '').trim().toLowerCase();
 
   if (normalized.includes('director')) return 0;
-  if (normalized.includes('dean') || normalized.includes('hod')) return 1;
-  if (normalized.includes('head')) return 2;
-  if (normalized.includes('associate professor')) return 3;
+  if (normalized.includes('dean')) return 1;
+  if (normalized.includes('principal')) return 2;
+  if (
+    normalized.includes('head of the department') ||
+    normalized.includes('head of the dept') ||
+    normalized.includes('hod') ||
+    normalized.includes('head')
+  ) return 3;
   if (normalized.includes('professor') && !normalized.includes('assistant') && !normalized.includes('associate')) return 4;
-  if (normalized.includes('assistant professor')) return 5;
-  return 6;
+  if (normalized.includes('associate professor')) return 5;
+  if (normalized.includes('assistant professor')) return 6;
+  return 7;
 };
 
 const getExperienceValue = (value) => {
@@ -88,39 +93,31 @@ const Faculty = () => {
       // Schools Data
       if (schoolsRes.ok) {
         const schoolsJson = await schoolsRes.json();
-
         if (Array.isArray(schoolsJson)) {
           schools = schoolsJson;
         } else if (schoolsJson.data) {
-          schools = Array.isArray(schoolsJson.data)
-            ? schoolsJson.data
-            : [schoolsJson.data];
+          schools = Array.isArray(schoolsJson.data) ? schoolsJson.data : [schoolsJson.data];
         }
       }
 
       // School Division Data
       if (divisionsRes.ok) {
         const divisionsJson = await divisionsRes.json();
-
         if (Array.isArray(divisionsJson)) {
           divisions = divisionsJson;
         } else if (divisionsJson.data) {
-          divisions = Array.isArray(divisionsJson.data)
-            ? divisionsJson.data
-            : [divisionsJson.data];
+          divisions = Array.isArray(divisionsJson.data) ? divisionsJson.data : [divisionsJson.data];
         }
       }
 
       // Combined School + Division
       const combinedList = schools.map((school) => {
-        const schoolDivisions = divisions.filter(
-          (division) => {
-            const divSchoolId = typeof division.schoolId === 'object'
-              ? division.schoolId?._id?.toString()
-              : division.schoolId?.toString();
-            return divSchoolId === school._id?.toString();
-          }
-        );
+        const schoolDivisions = divisions.filter((division) => {
+          const divSchoolId = typeof division.schoolId === 'object'
+            ? division.schoolId?._id?.toString()
+            : division.schoolId?.toString();
+          return divSchoolId === school._id?.toString();
+        });
 
         return {
           ...school,
@@ -147,13 +144,11 @@ const Faculty = () => {
       if (dataRes.ok) {
         const dataJson = await dataRes.json();
         let facultyData = [];
-
         if (Array.isArray(dataJson)) {
           facultyData = dataJson;
         } else if (dataJson.data) {
           facultyData = Array.isArray(dataJson.data) ? dataJson.data : [dataJson.data];
         }
-
         setDataList(sortFacultyMembers(facultyData));
       }
     } catch (error) {

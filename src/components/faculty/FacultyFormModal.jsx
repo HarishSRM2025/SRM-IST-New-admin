@@ -17,7 +17,7 @@ const FacultyFormModal = ({
   subjects,
   setSubjects,
   educationDetails,
-  setEducationDetails
+  setEducationDetails,
 }) => {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
@@ -132,56 +132,57 @@ const FacultyFormModal = ({
         )}
 
         <form onSubmit={handleSubmit} style={{ padding: '0 24px 24px 24px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="facultyName">Full Name</label>
-              <input
-                type="text"
-                id="facultyName"
-                name="facultyName"
-                className="form-input"
-                placeholder="e.g. Dr. John Doe"
-                value={formData.facultyName}
-                onChange={handleChange}
-                required
-              />
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="facultyName">Full Name</label>
+                <input
+                  type="text"
+                  id="facultyName"
+                  name="facultyName"
+                  className="form-input"
+                  placeholder="e.g. Dr. John Doe"
+                  value={formData.facultyName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="facultyEmail">Email</label>
+                <input
+                  type="email"
+                  id="facultyEmail"
+                  name="facultyEmail"
+                  className="form-input"
+                  placeholder="e.g. john@srm.edu"
+                  value={formData.facultyEmail}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="facultyEmail">Email</label>
-              <input
-                type="email"
-                id="facultyEmail"
-                name="facultyEmail"
-                className="form-input"
-                placeholder="e.g. john@srm.edu"
-                value={formData.facultyEmail}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="facultyGender">Gender</label>
+                <select
+                  id="facultyGender"
+                  name="facultyGender"
+                  className="form-input"
+                  value={formData.facultyGender}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="facultyGender">Gender</label>
-              <select
-                id="facultyGender"
-                name="facultyGender"
-                className="form-input"
-                value={formData.facultyGender}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="affiliationType">Affiliation Type</label>
+              <div className="form-group">
+                <label className="form-label" htmlFor="affiliationType">Affiliation Type</label>
                 <select
                   id="affiliationType"
                   className="form-input"
@@ -189,284 +190,249 @@ const FacultyFormModal = ({
                   onChange={(e) => handleAffiliationTypeChange(e.target.value)}
                   disabled={isCoordinator}
                 >
-                <option value="school">School / Department</option>
-                <option value="institution">Institution</option>
-              </select>
+                  <option value="school">School / Department</option>
+                  <option value="institution">Institution</option>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {affiliationType === 'institution' ? (
-              <div className="form-group">
-                <label className="form-label" htmlFor="institution">Institution</label>
-                <select
-                  id="institution"
-                  name="institution"
-                  className="form-input"
-                  value={formData.institution || ''}
-                  onChange={handleChange}
-                  required={affiliationType === 'institution'}
-                  disabled={isCoordinator}
-                >
-                  <option value="">Select an Institution</option>
-                  {visibleInstitutions.map(inst => (
-                    <option key={inst._id} value={inst._id}>{inst.name}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div className="form-group">
-                <label className="form-label" htmlFor="school">School</label>
-                <select
-                  id="school"
-                  name="school"
-                  className="form-input"
-                  value={formData.school || ''}
-                  onChange={(e) => {
-                    handleChange(e);
-                    handleChange({ target: { name: 'schoolDivision', value: '' } });
-                  }}
-                  required={affiliationType === 'school'}
-                  disabled={isCoordinator && coordinatorSession.mappingLevel !== 'institute'}
-                >
-                  <option value="">Select a School</option>
-                  {visibleSchools.map(s => (
-                    <option key={s._id} value={s._id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {affiliationType === 'school' && (() => {
-            const selectedSchool = formData.school ? schoolsList.find(s => s._id === formData.school) : null;
-            const availableDivisions = selectedSchool?.divisions || [];
-            console.log('[DEBUG MODAL] formData.school:', formData.school, '| selectedSchool:', selectedSchool?.name, '| divisions:', availableDivisions.length, availableDivisions.map(d => d.name));
-            return (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              {affiliationType === 'institution' ? (
                 <div className="form-group">
-                  <label className="form-label" htmlFor="schoolDivision">School Division / Department</label>
+                  <label className="form-label" htmlFor="institution">Institution</label>
                   <select
-                    id="schoolDivision"
-                    name="schoolDivision"
+                    id="institution"
+                    name="institution"
                     className="form-input"
-                    value={formData.schoolDivision || ''}
+                    value={formData.institution || ''}
                     onChange={handleChange}
-                    disabled={!formData.school || (isCoordinator && coordinatorSession.mappingLevel === 'division')}
+                    required={affiliationType === 'institution'}
+                    disabled={isCoordinator}
                   >
-                    <option value="">{formData.school ? 'Select a Division' : '-- Select a School first --'}</option>
-                    {availableDivisions.map(d => (
-                      <option key={d._id} value={d._id}>{d.name}</option>
+                    <option value="">Select an Institution</option>
+                    {visibleInstitutions.map(inst => (
+                      <option key={inst._id} value={inst._id}>{inst.name}</option>
                     ))}
                   </select>
                 </div>
-              </div>
-            );
-          })()}
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="designation">Designation</label>
-              <input
-                type="text"
-                id="designation"
-                name="designation"
-                className="form-input"
-                placeholder="e.g. Associate Professor"
-                value={formData.designation}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="facultyExperience">Experience (years)</label>
-              <input
-                type="number"
-                id="facultyExperience"
-                name="facultyExperience"
-                className="form-input"
-                placeholder="e.g. 10"
-                value={formData.facultyExperience}
-                onChange={handleChange}
-                required
-                min="0"
-              />
-            </div>
-          </div>
-
-          {/* Image Upload — styled like other pages */}
-          <div className="form-group">
-            <label className="form-label">Faculty Image</label>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              {(previewImage || formData.existingImage) && (
-                <img
-                  src={previewImage || (formData.existingImage.startsWith('http')
-                    ? formData.existingImage
-                    : `${import.meta.env.VITE_API_URL.replace('/api', '')}/${formData.existingImage.replace(/\\/g, '/').startsWith('public/')
-                        ? formData.existingImage.replace(/\\/g, '/')
-                        : 'public/uploads/' + formData.existingImage.replace(/\\/g, '/')}`)}
-                  alt="Preview"
-                  style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
-                />
+              ) : (
+                <div className="form-group">
+                  <label className="form-label" htmlFor="school">School</label>
+                  <select
+                    id="school"
+                    name="school"
+                    className="form-input"
+                    value={formData.school || ''}
+                    onChange={(e) => {
+                      handleChange(e);
+                      handleChange({ target: { name: 'schoolDivision', value: '' } });
+                    }}
+                    required={affiliationType === 'school'}
+                    disabled={isCoordinator && coordinatorSession.mappingLevel !== 'institute'}
+                  >
+                    <option value="">Select a School</option>
+                    {visibleSchools.map(s => (
+                      <option key={s._id} value={s._id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
               )}
-              <input
-                type="file"
-                id="facultyImage"
-                name="facultyImage"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                onChange={onFileChange}
-                accept="image/*"
-              />
-              <button
-                type="button"
-                className="btn-outline"
-                onClick={() => fileInputRef.current.click()}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <Upload size={16} />
-                {formData.existingImage ? 'Change Image' : 'Upload Image'}
-              </button>
-              <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>
-                {fileInputRef.current?.files?.[0]?.name || (formData.existingImage && !previewImage ? formData.existingImage.split('\\').pop().split('/').pop() : 'No file chosen')}
-              </span>
             </div>
-          </div>
 
-          {/* Subjects */}
-          {/* <div className="form-group">
-            <label className="form-label">Subjects</label>
-            {subjects.map((subj, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            {affiliationType === 'school' && (() => {
+              const selectedSchool = formData.school ? schoolsList.find(s => s._id === formData.school) : null;
+              const availableDivisions = selectedSchool?.divisions || [];
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="schoolDivision">School Division / Department</label>
+                    <select
+                      id="schoolDivision"
+                      name="schoolDivision"
+                      className="form-input"
+                      value={formData.schoolDivision || ''}
+                      onChange={handleChange}
+                      disabled={!formData.school || (isCoordinator && coordinatorSession.mappingLevel === 'division')}
+                    >
+                      <option value="">{formData.school ? 'Select a Division' : '-- Select a School first --'}</option>
+                      {availableDivisions.map(d => (
+                        <option key={d._id} value={d._id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="designation">Designation</label>
                 <input
                   type="text"
+                  id="designation"
+                  name="designation"
                   className="form-input"
-                  placeholder={`Subject ${idx + 1}`}
-                  value={subj.subject}
-                  onChange={(e) => handleSubjectChange(idx, e.target.value)}
+                  placeholder="e.g. Associate Professor"
+                  value={formData.designation}
+                  onChange={handleChange}
                   required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="facultyExperience">Experience (years)</label>
+                <input
+                  type="number"
+                  id="facultyExperience"
+                  name="facultyExperience"
+                  className="form-input"
+                  placeholder="e.g. 10"
+                  value={formData.facultyExperience}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div className="form-group">
+              <label className="form-label">Faculty Image</label>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                {(previewImage || formData.existingImage) && (
+                  <img
+                    src={previewImage || (formData.existingImage.startsWith('http')
+                      ? formData.existingImage
+                      : `${import.meta.env.VITE_API_URL.replace('/api', '')}/${formData.existingImage.replace(/\\/g, '/').startsWith('public/')
+                          ? formData.existingImage.replace(/\\/g, '/')
+                          : 'public/uploads/' + formData.existingImage.replace(/\\/g, '/')}`)}
+                    alt="Preview"
+                    style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                  />
+                )}
+                <input
+                  type="file"
+                  id="facultyImage"
+                  name="facultyImage"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={onFileChange}
+                  accept="image/*"
                 />
                 <button
                   type="button"
-                  className="btn-danger"
-                  style={{ padding: '6px 10px', flexShrink: 0 }}
-                  onClick={() => handleRemoveSubject(idx)}
-                  title="Remove subject"
+                  className="btn-outline"
+                  onClick={() => fileInputRef.current.click()}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <Trash2 size={16} />
+                  <Upload size={16} />
+                  {formData.existingImage ? 'Change Image' : 'Upload Image'}
                 </button>
+                <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                  {fileInputRef.current?.files?.[0]?.name || (formData.existingImage && !previewImage ? formData.existingImage.split('\\').pop().split('/').pop() : 'No file chosen')}
+                </span>
               </div>
-            ))}
-            <button
-              type="button"
-              className="btn-secondary"
-              style={{ padding: '6px 14px', fontSize: '13px' }}
-              onClick={handleAddSubject}
-            >
-              <Plus size={14} /> Add Subject
-            </button>
-          </div> */}
+            </div>
 
-          {/* Subjects */}
-          <div className="form-group">
-            <label className="form-label">Subjects</label>
-            <textarea
-              className="form-input"
-              rows="4"
-              placeholder="Enter subjects separated by commas"
-              value={Array.isArray(subjects) ? subjects.map(s => typeof s === 'string' ? s : s.subject).join(", ") : ''}
-              onChange={(e) =>
-                setSubjects(
-                  e.target.value
-                    .split(",")
-                    .map(subject => subject.trim())
-                    .filter(Boolean)
-                )
-              }
-              required
-            />
-          </div>
+            {/* Subjects */}
+            <div className="form-group">
+              <label className="form-label">Subjects</label>
+              <textarea
+                className="form-input"
+                rows="4"
+                placeholder="Enter subjects separated by commas"
+                value={Array.isArray(subjects) ? subjects.map(s => typeof s === 'string' ? s : s.subject).join(", ") : ''}
+                onChange={(e) =>
+                  setSubjects(
+                    e.target.value
+                      .split(",")
+                      .map(subject => subject.trim())
+                      .filter(Boolean)
+                  )
+                }
+                required
+              />
+            </div>
 
-          {/* Area of Interest */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="areaOfInterest">Area of Interest</label>
-            <textarea
-              id="areaOfInterest"
-              name="areaOfInterest"
-              className="form-textarea"
-              placeholder="e.g. Machine Learning, Data Science, Cloud Computing..."
-              value={formData.areaOfInterest || ''}
-              onChange={handleChange}
-              required
-              style={{ minHeight: '80px' }}
-            />
-          </div>
+            {/* Area of Interest */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="areaOfInterest">Area of Interest</label>
+              <textarea
+                id="areaOfInterest"
+                name="areaOfInterest"
+                className="form-textarea"
+                placeholder="e.g. Machine Learning, Data Science, Cloud Computing..."
+                value={formData.areaOfInterest || ''}
+                onChange={handleChange}
+                required
+                style={{ minHeight: '80px' }}
+              />
+            </div>
 
-
-
-          {/* Education Details */}
-          <div className="form-group">
-            <label className="form-label">Education Details</label>
-            {educationDetails.map((edu, idx) => (
-              <div key={idx} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginBottom: '10px', background: 'var(--bg-body)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-dark)' }}>Education {idx + 1}</span>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    style={{ padding: '4px 8px', flexShrink: 0 }}
-                    onClick={() => handleRemoveEducation(idx)}
-                    title="Remove education"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+            {/* Education Details */}
+            <div className="form-group">
+              <label className="form-label">Education Details</label>
+              {educationDetails.map((edu, idx) => (
+                <div key={idx} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginBottom: '10px', background: 'var(--bg-body)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-dark)' }}>Education {idx + 1}</span>
+                    <button
+                      type="button"
+                      className="btn-danger"
+                      style={{ padding: '4px 8px', flexShrink: 0 }}
+                      onClick={() => handleRemoveEducation(idx)}
+                      title="Remove education"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Degree (e.g. Ph.D, M.Tech)"
+                      value={edu.degree}
+                      onChange={(e) => handleEducationChange(idx, 'degree', e.target.value)}
+                      required
+                    />
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Institution (e.g. IIT Madras)"
+                      value={edu.institution}
+                      onChange={(e) => handleEducationChange(idx, 'institution', e.target.value)}
+                      required
+                    />
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Specialization (e.g. Computer Science)"
+                      value={edu.specialization}
+                      onChange={(e) => handleEducationChange(idx, 'specialization', e.target.value)}
+                      required
+                    />
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Year (e.g. 2020)"
+                      value={edu.year}
+                      onChange={(e) => handleEducationChange(idx, 'year', e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Degree (e.g. Ph.D, M.Tech)"
-                    value={edu.degree}
-                    onChange={(e) => handleEducationChange(idx, 'degree', e.target.value)}
-                    required
-                  />
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Institution (e.g. IIT Madras)"
-                    value={edu.institution}
-                    onChange={(e) => handleEducationChange(idx, 'institution', e.target.value)}
-                    required
-                  />
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Specialization (e.g. Computer Science)"
-                    value={edu.specialization}
-                    onChange={(e) => handleEducationChange(idx, 'specialization', e.target.value)}
-                    required
-                  />
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Year (e.g. 2020)"
-                    value={edu.year}
-                    onChange={(e) => handleEducationChange(idx, 'year', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="btn-secondary"
-              style={{ padding: '6px 14px', fontSize: '13px' }}
-              onClick={handleAddEducation}
-            >
-              <Plus size={14} /> Add Education
-            </button>
+              ))}
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ padding: '6px 14px', fontSize: '13px' }}
+                onClick={handleAddEducation}
+              >
+                <Plus size={14} /> Add Education
+              </button>
+            </div>
           </div>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>
             <button type="button" className="btn-secondary" onClick={closeAndReset} disabled={loading}>
               Cancel

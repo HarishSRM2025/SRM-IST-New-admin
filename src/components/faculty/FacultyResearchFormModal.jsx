@@ -5,6 +5,7 @@ import { ChevronDown, Save, Loader2, X, Plus, Trash2, ClipboardPaste, List } fro
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace('/api', '');
 
 const TABS = [
+  { key: 'workExperience', label: 'Work Experience', placeholder: 'Paste work experience here (one per line):&#10;• Senior Software Engineer at Tech Corp (2020 - 2023)&#10;• Lead AI Researcher at SRM IST (2018 - 2020)' },
   { key: 'publications', label: 'Publications', placeholder: 'Paste publications here (one per line):&#10;• Deep Learning Approaches for Medical Image Analysis, IEEE Trans 2023&#10;• Real-Time Object Detection on Edge Devices, Springer 2022' },
   { key: 'awards_and_achievements', label: 'Awards & Achievements', placeholder: 'Paste awards/achievements here (one per line):&#10;• Best Researcher Award 2023 by National Science Forum&#10;• Outstanding Faculty Award 2021, SRM IST' },
   { key: 'invited_lectures', label: 'Invited Lectures', placeholder: 'Paste invited lectures here (one per line):&#10;• Keynote Speaker on AI in Healthcare at Global Tech Summit 2023&#10;• Guest Lecture on Deep Learning at IIT Madras' },
@@ -49,6 +50,9 @@ const parseTextToPoints = (text) => {
 const formatItemText = (item) => {
   if (typeof item === 'string') return item;
   if (!item) return '';
+  if (item.companyName || item.role) {
+    return [item.role, item.companyName].filter(Boolean).join(' at ');
+  }
   if (item.title) {
     return [item.title, item.journal, item.year, item.coAuthors].filter(Boolean).join(' - ');
   }
@@ -84,7 +88,7 @@ const FacultyResearchFormModal = ({
   facultyList,
   schoolsList = [],
 }) => {
-  const [activeTab, setActiveTab] = useState('publications');
+  const [activeTab, setActiveTab] = useState('workExperience');
   const [isFacultyOpen, setIsFacultyOpen] = useState(false);
   const [facultySearch, setFacultySearch] = useState('');
   const [rawTexts, setRawTexts] = useState({});
@@ -106,7 +110,7 @@ const FacultyResearchFormModal = ({
       });
       setRawTexts(initialRaw);
     }
-  }, [isModalOpen, formData._id]);
+  }, [isModalOpen, formData._id, formData.facultyId]);
 
   if (!isModalOpen) return null;
 
@@ -194,7 +198,7 @@ const FacultyResearchFormModal = ({
     <div className="modal-overlay">
       <div className="modal-content" style={{ maxWidth: '920px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="modal-header">
-          <h2 className="modal-title">{formData._id ? 'Edit Faculty Research' : 'Add Faculty Research'}</h2>
+          <h2 className="modal-title">{formData._id || formData.experienceId ? 'Edit Faculty Research & Work Experience' : 'Add Faculty Research & Work Experience'}</h2>
           <button className="modal-close" onClick={handleCloseModal}>
             <X size={24} />
           </button>
@@ -508,7 +512,7 @@ const FacultyResearchFormModal = ({
             </button>
             <button type="submit" className="btn-primary" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {loading ? 'Saving...' : formData._id ? 'Update Research' : 'Save Research'}
+              {loading ? 'Saving...' : formData._id || formData.experienceId ? 'Update Record' : 'Save Record'}
             </button>
           </div>
         </form>

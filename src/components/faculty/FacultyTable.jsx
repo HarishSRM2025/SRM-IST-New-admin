@@ -80,14 +80,26 @@ const FacultyTable = ({
       .filter(Boolean);
 
     const categories = [];
-    if (rawDesignations.some(d => /assistant\s+professor/i.test(d))) {
-      categories.push('Assistant Professor');
+    if (rawDesignations.some(d => /director/i.test(d))) {
+      categories.push('Director');
+    }
+    if (rawDesignations.some(d => /dean/i.test(d))) {
+      categories.push('Dean');
+    }
+    if (rawDesignations.some(d => /principal/i.test(d))) {
+      categories.push('Principal');
+    }
+    if (rawDesignations.some(d => /head of the department|head of the dept|hod|\bhead\b/i.test(d))) {
+      categories.push('HOD / Head / Head of the Department');
+    }
+    if (rawDesignations.some(d => /professor/i.test(d) && !/assistant|associate/i.test(d))) {
+      categories.push('Professor');
     }
     if (rawDesignations.some(d => /associate\s+professor/i.test(d))) {
       categories.push('Associate Professor');
     }
-    if (rawDesignations.some(d => /professor/i.test(d) && !/assistant|associate/i.test(d))) {
-      categories.push('Professor');
+    if (rawDesignations.some(d => /assistant\s+professor/i.test(d))) {
+      categories.push('Assistant Professor');
     }
 
     const uniqueRaw = [...new Set(rawDesignations)].filter(d => !categories.includes(d)).sort();
