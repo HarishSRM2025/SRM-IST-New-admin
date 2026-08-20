@@ -43,7 +43,7 @@ const parseTextToPoints = (text) => {
   if (!text) return [];
   return text
     .split(/\r?\n/)
-    .map(line => line.replace(/^\s*[✔✓•❖➤►▪▫◉○●■□◆◇➢➣➜➝★*\-–—\d.)\s]+/, '').trim())
+    .map(line => line.replace(/^\s*[✔✓•❖➤►▪▫◉○●Ø■□◆◇➢➣➜➝★*\-–—\d.)\s]+/, '').trim())
     .filter(Boolean);
 };
 
