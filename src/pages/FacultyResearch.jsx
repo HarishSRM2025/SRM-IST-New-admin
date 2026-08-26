@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import InstitutionHeader from '../components/institution/InstitutionHeader';
 import FacultyResearchTable from '../components/faculty/FacultyResearchTable';
 import FacultyResearchFormModal from '../components/faculty/FacultyResearchFormModal';
 import InstitutionDeleteModal from '../components/institution/InstitutionDeleteModal';
 import SubNav from '../components/common/SubNav';
+import { getDesignationRank, getExperienceValue } from '../utils/facultyHierarchy';
 
 const facultyTabs = [
   { label: 'Faculty Details', path: '/faculty', end: true },
@@ -31,6 +32,7 @@ const getFacultyId = (facultyId) => (
 const FacultyResearch = () => {
   const [facultyList, setFacultyList] = useState([]);
   const [schoolsList, setSchoolsList] = useState([]);
+  const [institutionsList, setInstitutionsList] = useState([]);
   const [dataList, setDataList] = useState([]);
   const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const [loading, setLoading] = useState(false);
@@ -40,15 +42,22 @@ const FacultyResearch = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('');
+  const [selectedInstitution, setSelectedInstitution] = useState('');
+  const [selectedDivision, setSelectedDivision] = useState('');
+  const [selectedDesignation, setSelectedDesignation] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const fetchData = async () => {
     setFetching(true);
     try {
-      const [facRes, schoolsRes, researchRes, experienceRes] = await Promise.all([
+      const [facRes, schoolsRes, divisionsRes, institutionsRes, researchRes, experienceRes] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_URL}/faculty/getfaculty`),
         fetch(`${import.meta.env.VITE_API_URL}/schools/getall`),
+        fetch(`${import.meta.env.VITE_API_URL}/school-division/getall`),
+        fetch(`${import.meta.env.VITE_API_URL}/institution/getall`),
         fetch(`${import.meta.env.VITE_API_URL}/faculty/getfacultyresearch`),
         fetch(`${import.meta.env.VITE_API_URL}/faculty/getfacultyexperience`),
       ]);
@@ -60,9 +69,27 @@ const FacultyResearch = () => {
         setFacultyList(faculties);
       }
 
+      let schools = [];
       if (schoolsRes.ok) {
         const schoolsJson = await schoolsRes.json();
-        setSchoolsList(Array.isArray(schoolsJson) ? schoolsJson : schoolsJson.data ? (Array.isArray(schoolsJson.data) ? schoolsJson.data : [schoolsJson.data]) : []);
+        schools = Array.isArray(schoolsJson) ? schoolsJson : schoolsJson.data ? (Array.isArray(schoolsJson.data) ? schoolsJson.data : [schoolsJson.data]) : [];
+      }
+      let divisions = [];
+      if (divisionsRes.ok) {
+        const divisionsJson = await divisionsRes.json();
+        divisions = Array.isArray(divisionsJson) ? divisionsJson : divisionsJson.data ? (Array.isArray(divisionsJson.data) ? divisionsJson.data : [divisionsJson.data]) : [];
+      }
+      setSchoolsList(schools.map(school => ({
+        ...school,
+        divisions: divisions.filter(division => {
+          const divisionSchoolId = typeof division.schoolId === 'object' ? division.schoolId?._id : division.schoolId;
+          return String(divisionSchoolId) === String(school._id);
+        })
+      })));
+      if (institutionsRes.ok) {
+        const institutionsJson = await institutionsRes.json();
+        const institutions = institutionsJson.success && institutionsJson.data ? institutionsJson.data : institutionsJson;
+        setInstitutionsList(Array.isArray(institutions) ? institutions : institutions ? [institutions] : []);
       }
 
       let researches = [];
@@ -142,7 +169,29 @@ const FacultyResearch = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedSchool, selectedInstitution, selectedDivision, selectedDesignation, selectedGender]);
+
+  const handleInstitutionChange = (value) => {
+    setSelectedInstitution(value);
+    setSelectedSchool('');
+    setSelectedDivision('');
+    setSelectedDesignation('');
+  };
+
+  const handleSchoolChange = (value) => {
+    setSelectedSchool(value);
+    setSelectedDivision('');
+    setSelectedDesignation('');
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedSchool('');
+    setSelectedInstitution('');
+    setSelectedDivision('');
+    setSelectedDesignation('');
+    setSelectedGender('');
+  };
 
   const resetForm = () => {
     setFormData({ ...EMPTY_FORM });
@@ -293,14 +342,44 @@ const FacultyResearch = () => {
     }
   };
 
+  const matchesDesignationFilter = (designation, filter) => {
+    if (!filter) return true;
+    const d = String(designation || '').trim();
+    if (filter === 'Assistant Professor') return /assistant\s+professor/i.test(d);
+    if (filter === 'Associate Professor') return /associate\s+professor/i.test(d);
+    if (filter === 'Professor') return /professor/i.test(d) && !/assistant|associate/i.test(d);
+    if (filter === 'Director') return /director/i.test(d);
+    if (filter === 'Dean') return /dean/i.test(d);
+    if (filter === 'Principal') return /principal/i.test(d);
+    if (filter === 'HOD / Head / Head of the Department') return /head of the department|head of the dept|hod|\bhead\b/i.test(d);
+    return d.toLowerCase() === filter.toLowerCase();
+  };
+
   const filteredDataList = dataList.filter(item => {
-    const facName = facultyList.find(f => f._id === getFacultyId(item.facultyId))?.facultyName || '';
-    return facName.toLowerCase().includes(searchQuery.toLowerCase());
+    const faculty = facultyList.find(f => String(f._id) === String(getFacultyId(item.facultyId))) || {};
+    const school = schoolsList.find(s => String(s._id) === String(faculty.school));
+    const schoolInstitutionId = school && typeof school.institutionId === 'object' ? school.institutionId?._id : school?.institutionId;
+    const division = school?.divisions?.find(d => String(d._id) === String(faculty.schoolDivision));
+    const search = searchQuery.toLowerCase();
+    const matchesSearch = !search || [faculty.facultyName, faculty.facultyEmail, faculty.designation, school?.name, division?.name, institutionsList.find(i => String(i._id) === String(faculty.institution))?.name].some(value => String(value || '').toLowerCase().includes(search));
+    return matchesSearch && (!selectedSchool || String(faculty.school) === String(selectedSchool)) && (!selectedInstitution || String(faculty.institution) === String(selectedInstitution) || String(schoolInstitutionId) === String(selectedInstitution)) && (!selectedDivision || String(faculty.schoolDivision) === String(selectedDivision)) && matchesDesignationFilter(faculty.designation, selectedDesignation) && (!selectedGender || faculty.facultyGender === selectedGender);
   });
 
-  const totalItems = filteredDataList.length;
+  const sortedResearchDataList = [...filteredDataList].sort((a, b) => {
+    const facultyA = facultyList.find(f => String(f._id) === String(getFacultyId(a.facultyId))) || {};
+    const facultyB = facultyList.find(f => String(f._id) === String(getFacultyId(b.facultyId))) || {};
+    const rankDifference = getDesignationRank(facultyA.designation) - getDesignationRank(facultyB.designation);
+    if (rankDifference !== 0) return rankDifference;
+
+    const experienceDifference = getExperienceValue(facultyB.facultyExperience) - getExperienceValue(facultyA.facultyExperience);
+    if (experienceDifference !== 0) return experienceDifference;
+
+    return String(facultyA.facultyName || '').localeCompare(String(facultyB.facultyName || ''));
+  });
+
+  const totalItems = sortedResearchDataList.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const currentData = filteredDataList.slice(
+  const currentData = sortedResearchDataList.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -324,8 +403,21 @@ const FacultyResearch = () => {
         fetching={fetching}
         dataList={currentData}
         facultyList={facultyList}
+        schoolsList={schoolsList}
+        institutionsList={institutionsList}
         handleOpenModal={handleOpenModal}
         handleDelete={handleDelete}
+        selectedSchool={selectedSchool}
+        setSelectedSchool={handleSchoolChange}
+        selectedInstitution={selectedInstitution}
+        setSelectedInstitution={handleInstitutionChange}
+        selectedDivision={selectedDivision}
+        setSelectedDivision={setSelectedDivision}
+        selectedDesignation={selectedDesignation}
+        setSelectedDesignation={setSelectedDesignation}
+        selectedGender={selectedGender}
+        setSelectedGender={setSelectedGender}
+        onClearFilters={handleClearFilters}
         pagination={{
           currentPage,
           totalPages,

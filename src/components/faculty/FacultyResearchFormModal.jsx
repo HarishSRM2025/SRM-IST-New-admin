@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Save, Loader2, X, Plus, Trash2, ClipboardPaste, List } from 'lucide-react';
+import { sortFacultyMembers } from '../../utils/facultyHierarchy';
 
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace('/api', '');
 
@@ -120,7 +121,7 @@ const FacultyResearchFormModal = ({
   };
 
   const selectedFaculty = facultyList.find(faculty => faculty._id === formData.facultyId);
-  const filteredFacultyList = facultyList.filter(faculty => {
+  const filteredFacultyList = sortFacultyMembers(facultyList).filter(faculty => {
     const query = facultySearch.trim().toLowerCase();
     if (!query) return true;
 

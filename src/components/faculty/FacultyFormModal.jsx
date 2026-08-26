@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Save, Loader2, X, Plus, Trash2, Upload } from 'lucide-react';
+import { FACULTY_DESIGNATION_SUGGESTIONS } from '../../utils/facultyHierarchy';
 
 const FacultyFormModal = ({
   isModalOpen,
@@ -276,7 +277,13 @@ const FacultyFormModal = ({
                   value={formData.designation}
                   onChange={handleChange}
                   required
+                  list="faculty-designation-suggestions"
                 />
+                <datalist id="faculty-designation-suggestions">
+                  {FACULTY_DESIGNATION_SUGGESTIONS.map(designation => (
+                    <option key={designation} value={designation} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="form-group">
