@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, Shield, Search, FilterX } from 'lucide-react';
+import { FilterX, Loader2, RefreshCw, Search, Shield } from 'lucide-react';
 import { getAuditLogs, getUsers } from '../api/auth';
+import Pagination from '../components/common/Pagination';
 import '../styles/theme.css';
 
 const getSession = () => {
@@ -21,6 +22,8 @@ export default function LogTracker() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const session = useMemo(() => getSession(), []);
   const isCoordinator = session?.role === 'coordinator';
   const [filters, setFilters] = useState({
@@ -37,6 +40,7 @@ export default function LogTracker() {
     try {
       const data = await getAuditLogs();
       setLogs(data.logs || []);
+      setCurrentPage(1);
     } catch (err) {
       setError(err.message || 'Unable to load audit logs.');
     } finally {
@@ -120,12 +124,32 @@ export default function LogTracker() {
     });
   }, [filters, isCoordinator, logs]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredLogs.slice(startIndex, startIndex + pageSize);
+  }, [filteredLogs, safeCurrentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const clearFilters = () => setFilters({ user: '', userRole: '', action: '', modulePage: '', date: '' });
+  const clearFilters = () => {
+    setFilters({ user: '', userRole: '', action: '', modulePage: '', date: '' });
+    setCurrentPage(1);
+  };
 
   return (
     <div>
@@ -137,7 +161,7 @@ export default function LogTracker() {
         </div>
         <div className="header-actions">
           <button className="btn btn-outline" onClick={fetchLogs} disabled={loading}>
-            <RefreshCw size={14} /> Refresh
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
         </div>
       </div>
@@ -202,6 +226,9 @@ export default function LogTracker() {
             <Search size={16} color="var(--primary-blue)" />
             {isCoordinator ? 'My Activity' : 'Results'} <span className="badge-light">{filteredLogs.length}</span>
           </div>
+          <div className="card-actions">
+            <span className="badge-light">Page {safeCurrentPage} of {totalPages}</span>
+          </div>
         </div>
         <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
           <table className="data-table">
@@ -216,10 +243,15 @@ export default function LogTracker() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>Loading logs...</td></tr>
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>
+                    <Loader2 size={28} className="animate-spin" style={{ color: 'var(--primary-blue)' }} />
+                    <div style={{ marginTop: 8 }}>Loading logs...</div>
+                  </td>
+                </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>{isCoordinator ? 'No activity found yet.' : 'No logs match the current filters.'}</td></tr>
-              ) : filteredLogs.map((log) => (
+              ) : paginatedLogs.map((log) => (
                 <tr key={log._id}>
                   <td>{log.userId?.username || log.userId?.email || '-'}</td>
                   <td>{log.userId?.role || '-'}</td>
@@ -231,6 +263,15 @@ export default function LogTracker() {
             </tbody>
           </table>
         </div>
+        {!loading && (
+          <Pagination
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredLogs.length}
+            itemsPerPage={pageSize}
+          />
+        )}
       </div>
     </div>
   );

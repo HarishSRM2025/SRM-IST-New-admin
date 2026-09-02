@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Edit2, RefreshCw, Shield, Users as UsersIcon } from 'lucide-react';
 import { getUsers, updateUser } from '../api/auth';
+import Pagination from '../components/common/Pagination';
 import '../styles/theme.css';
 
 export default function UserManagement() {
@@ -9,6 +10,8 @@ export default function UserManagement() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -33,6 +36,19 @@ export default function UserManagement() {
     if (!query) return users;
     return users.filter((user) => [user.username, user.email, user.role, user.status].some((value) => String(value || '').toLowerCase().includes(query)));
   }, [searchQuery, users]);
+
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const currentUsers = filteredUsers.slice((safeCurrentPage - 1) * itemsPerPage, safeCurrentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const handleToggleStatus = async (user) => {
     setSaving(true);
@@ -95,7 +111,7 @@ export default function UserManagement() {
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>Loading users...</td></tr>
               ) : filteredUsers.length === 0 ? (
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>No users found.</td></tr>
-              ) : filteredUsers.map((user) => (
+              ) : currentUsers.map((user) => (
                 <tr key={user._id}>
                   <td>
                     <div className="user-cell">
@@ -116,6 +132,15 @@ export default function UserManagement() {
             </tbody>
           </table>
         </div>
+        {!loading && (
+          <Pagination
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
+        )}
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import {
   getResumeUrl,
   updateCareer,
 } from '../api/careers';
+import Pagination from '../components/common/Pagination';
 import '../styles/theme.css';
 
 const emptyCareer = {
@@ -43,6 +44,8 @@ export default function CareersManagement() {
   const [formData, setFormData] = useState(emptyCareer);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchData = async () => {
     setLoading(true);
@@ -88,6 +91,19 @@ export default function CareersManagement() {
       ].some((value) => String(value || '').toLowerCase().includes(query))
     );
   }, [applications, searchQuery]);
+
+  const activeItems = activeTab === 'careers' ? filteredCareers : filteredApplications;
+  const totalPages = Math.max(1, Math.ceil(activeItems.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const currentItems = activeItems.slice((safeCurrentPage - 1) * itemsPerPage, safeCurrentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const openCareerModal = (career = null) => {
     setFormData(career ? {
@@ -214,6 +230,7 @@ export default function CareersManagement() {
         </div>
 
         {activeTab === 'careers' ? (
+          <>
           <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
             <table className="data-table">
               <thead>
@@ -231,7 +248,7 @@ export default function CareersManagement() {
                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40 }}>Loading careers...</td></tr>
                 ) : filteredCareers.length === 0 ? (
                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40 }}>No career postings found.</td></tr>
-                ) : filteredCareers.map((career) => (
+                ) : currentItems.map((career) => (
                   <tr key={career._id}>
                     <td><strong>{career.title}</strong></td>
                     <td>{career.Institute}</td>
@@ -253,7 +270,10 @@ export default function CareersManagement() {
               </tbody>
             </table>
           </div>
+          {!loading && <Pagination currentPage={safeCurrentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={activeItems.length} itemsPerPage={itemsPerPage} />}
+          </>
         ) : (
+          <>
           <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
             <table className="data-table">
               <thead>
@@ -271,7 +291,7 @@ export default function CareersManagement() {
                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40 }}>Loading applications...</td></tr>
                 ) : filteredApplications.length === 0 ? (
                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40 }}>No applications found.</td></tr>
-                ) : filteredApplications.map((application) => (
+                ) : currentItems.map((application) => (
                   <tr key={application._id}>
                     <td>
                       <strong>{application.name}</strong>
@@ -298,6 +318,8 @@ export default function CareersManagement() {
               </tbody>
             </table>
           </div>
+          {!loading && <Pagination currentPage={safeCurrentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={activeItems.length} itemsPerPage={itemsPerPage} />}
+          </>
         )}
       </div>
 

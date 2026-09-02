@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Copy, Check, Edit2, Loader2, Plus, RefreshCw, Save, Users as UsersIcon, X } from 'lucide-react';
 import { createCoordinator, getUsers, updateUser } from '../api/auth';
+import Pagination from '../components/common/Pagination';
 import '../styles/theme.css';
 
 const emptyForm = {
@@ -40,6 +41,8 @@ export default function CoordinatorManagement() {
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const [copied, setCopied] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleCopyLink = () => {
     const link = `${window.location.origin}/coordinator/signin`;
@@ -91,6 +94,19 @@ export default function CoordinatorManagement() {
     if (!query) return users;
     return users.filter((user) => [user.username, user.email, user.status, user.mappingLevel].some((value) => String(value || '').toLowerCase().includes(query)));
   }, [searchQuery, users]);
+
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const currentUsers = filteredUsers.slice((safeCurrentPage - 1) * itemsPerPage, safeCurrentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const availableSchools = useMemo(
     () => schoolsList.filter((school) => String(school.institutionId?._id || school.institutionId) === String(formData.instituteId)),
@@ -236,7 +252,7 @@ export default function CoordinatorManagement() {
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>Loading coordinators...</td></tr>
               ) : filteredUsers.length === 0 ? (
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40 }}>No coordinators found.</td></tr>
-              ) : filteredUsers.map((user) => (
+              ) : currentUsers.map((user) => (
                 <tr key={user._id}>
                   <td><div className="user-cell"><div className="user-avatar">{(user.username || user.email || 'A').charAt(0).toUpperCase()}</div><strong>{user.username || '-'}</strong></div></td>
                   <td>{user.email}</td>
@@ -248,6 +264,15 @@ export default function CoordinatorManagement() {
             </tbody>
           </table>
         </div>
+        {!loading && (
+          <Pagination
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
+        )}
       </div>
 
       {(selectedUser || isCreateMode) && createPortal(
