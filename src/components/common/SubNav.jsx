@@ -1,10 +1,10 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const SubNav = ({ tabs }) => {
   return (
     <div style={{
       display: 'flex',
+      flexWrap: 'wrap',
       gap: '24px',
       borderBottom: '1px solid var(--border-color)',
       marginBottom: '24px',

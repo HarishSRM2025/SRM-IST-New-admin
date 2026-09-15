@@ -11,7 +11,8 @@ const divisionTabs = [
   { label: 'HOD Message', path: '/school-divisions/hod-message', end: false },
   { label: 'Programmes', path: '/school-divisions/programmes', end: false },
   { label: 'Achievements', path: '/school-divisions/achievements', end: false },
-  { label: 'Events & Activities', path: '/school-divisions/events-and-activities', end: false }
+  { label: 'Events & Activities', path: '/school-divisions/events-and-activities', end: false },
+  { label: 'Announcement', path: '/school-divisions/announcement', end: false }
 ];
 
 const blankForm = {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Plus } from 'lucide-react';
 import SearchBar from '../common/SearchBar';
 
@@ -9,7 +8,8 @@ const InstitutionHeader = ({
   title = "Institution Details",
   subtitle = "Manage the core identity, vision, and mission.",
   buttonText = "New Institution",
-  breadcrumbSection = "Institution"
+  breadcrumbSection = "Institution",
+  additionalActions
 }) => {
   return (
     <div className="page-header" style={{ padding: '0 0 32px 0' }}>
@@ -24,6 +24,7 @@ const InstitutionHeader = ({
           setSearchQuery={setSearchQuery}
           placeholder="Search..."
         />
+        {additionalActions}
         {handleOpenModal && (
           <button className="btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={16} />

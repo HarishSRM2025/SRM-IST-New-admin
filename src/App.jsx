@@ -1,3 +1,4 @@
+import Announcements from './pages/Announcements';
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
@@ -236,6 +237,7 @@ function App() {
           <Route path="institution/dean-message" element={<DeanMessage />} />
           <Route path="institution/infrastructure" element={<Infrastructure />} />
           <Route path="institution/gallery-resource" element={<GalleryResource />} />
+          <Route path="institution/announcement" element={<Announcements key="institution" module="institution" />} />
           <Route path="institution/events-and-activities" element={<InstituteEventsAndActivities />} />
           <Route path="institution/programmes" element={<InstituteProgrammes />} />
           <Route path="sliders" element={<Slider />} />
@@ -255,15 +257,18 @@ function App() {
           <Route path="school-divisions/hod-message" element={<DivisionHODMessage />} />
           <Route path="school-divisions/programmes" element={<SchoolDivisionProgrammes />} />
           <Route path="school-divisions/achievements" element={<DivisionAchievements />} />
+          <Route path="school-divisions/announcement" element={<Announcements key="school-division" module="school-division" />} />
           <Route path="school-divisions/events-and-activities" element={<DivisionEventsAndActivities />} />
           <Route path="schools/divisions" element={<SchoolDivisions />} />
           <Route path="schools/divisions/hod-message" element={<DivisionHODMessage />} />
           <Route path="schools/divisions/programmes" element={<SchoolDivisionProgrammes />} />
           <Route path="schools/divisions/achievements" element={<DivisionAchievements />} />
+          <Route path="schools/divisions/announcement" element={<Announcements key="school-division" module="school-division" />} />
           <Route path="schools/divisions/events-and-activities" element={<DivisionEventsAndActivities />} />
           <Route path="schools/hod-message" element={<HODMessage />} />
           <Route path="schools/programmes" element={<Programmes />} />
           <Route path="schools/achievements" element={<Achievements />} />
+          <Route path="schools/announcement" element={<Announcements key="schools" module="schools" />} />
           <Route path="schools/events-and-activities" element={<EventsAndActivities />} />
           <Route path="faculty" element={<FacultyLayout />}>
             <Route index element={<Faculty />} />

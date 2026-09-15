@@ -13,6 +13,7 @@ const institutionTabs = [
   { label: 'Infrastructure', path: '/institution/infrastructure', end: false },
   { label: 'Gallery & Resources', path: '/institution/gallery-resource', end: false },
   { label: 'Events & Activities', path: '/institution/events-and-activities', end: false },
+  { label: 'Announcement', path: '/institution/announcement', end: false },
   { label: 'Programmes Offered', path: '/institution/programmes', end: false }
 ];
 

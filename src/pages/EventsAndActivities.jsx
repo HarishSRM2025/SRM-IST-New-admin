@@ -10,7 +10,8 @@ const schoolTabs = [
   { label: 'HOD Message', path: '/schools/hod-message', end: false },
   { label: 'Programmes', path: '/schools/programmes', end: false },
   { label: 'Achievements', path: '/schools/achievements', end: false },
-  { label: 'Events & Activities', path: '/schools/events-and-activities', end: false }
+  { label: 'Events & Activities', path: '/schools/events-and-activities', end: false },
+  { label: 'Announcement', path: '/schools/announcement', end: false }
 ];
 
 const EventsAndActivities = () => {
