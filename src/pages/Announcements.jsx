@@ -85,7 +85,7 @@ export default function Announcements({ module }) {
   }, [module]);
   const close = () => { if (!busy) { setModal(null); setDeleteTarget(null); setError(''); } };
   const openAnnouncement = row => {
-    setForm(row ? { ...row, announcement_category_id: row.announcement_category_id || '', publish_date: localDate(row.publish_date || new Date()), announcement_type: row.announcement_category_id ? 'category' : 'marquee' } : { ...blankAnnouncement, publish_date: localDate(new Date()) });
+    setForm(row ? { ...row, announcement_category_id: row.announcement_category_id || '', publish_date: localDate(row.publish_date || new Date()), announcement_type: row.announcement_type || (row.announcement_category_id ? 'category' : 'marquee') } : { ...blankAnnouncement, publish_date: localDate(new Date()) });
     setError(''); setNotice(''); setModal('announcement');
   };
   const mutate = async (action, message) => {
@@ -99,7 +99,7 @@ export default function Announcements({ module }) {
   };
   const saveAnnouncement = e => {
     e.preventDefault();
-    mutate(() => request(`/${form._id || ''}${query}`, form._id ? 'PUT' : 'POST', { ...form, announcement_category_id: form.announcement_type === 'category' ? form.announcement_category_id : null, publish_date: new Date(`${form.publish_date}T00:00:00`).toISOString(), expiry_date: null }), 'Announcement saved.');
+    mutate(() => request(`/${form._id || ''}${query}`, form._id ? 'PUT' : 'POST', { ...form, announcement_category_id: form.announcement_type !== 'marquee' ? form.announcement_category_id : null, publish_date: new Date(`${form.publish_date}T00:00:00`).toISOString(), expiry_date: null }), 'Announcement saved.');
   };
   const confirmDelete = () => mutate(() => request(deleteTarget.kind === 'category' ? `/categories/${deleteTarget.row._id}` : `/${deleteTarget.row._id}${query}`, 'DELETE'), 'Deleted successfully.');
   const change = e => {
@@ -164,10 +164,10 @@ export default function Announcements({ module }) {
     </AnnouncementModal>}
     {modal === 'announcement' && <AnnouncementModal title={form._id ? 'Edit Announcement' : 'New Announcement'} onClose={close} busy={busy}>
       {errorAlert}<form onSubmit={saveAnnouncement}><fieldset disabled={busy} className="announcement-fieldset announcement-form-grid">
-        <div className="form-group"><label className="form-label" htmlFor="announcement-type">Announcement Type</label><select id="announcement-type" className="form-input" required name="announcement_type" value={form.announcement_type} onChange={change}><option value="marquee">Marquee Announcement</option><option value="category">Category Announcement</option></select></div>
+        <div className="form-group"><label className="form-label" htmlFor="announcement-type">Announcement Type</label><select id="announcement-type" className="form-input" required name="announcement_type" value={form.announcement_type} onChange={change}><option value="marquee">Marquee Announcement</option><option value="category">Category Announcement</option><option value="both">Both</option></select></div>
         <div className="form-group"><label className="form-label" htmlFor="announcement-owner">{isDivision ? 'Select a Division' : 'Select a School Type'}</label><select id="announcement-owner" className="form-input" required name="school_or_institution_id" value={form.school_or_institution_id} onChange={change}><option value="">Select {isDivision ? 'a division' : module === 'institution' ? 'an institution' : 'a school'}</option>{owners.map(owner => <option key={owner._id} value={owner._id}>{owner.name}</option>)}</select></div>
         <div className="form-group"><label className="form-label" htmlFor="announcement-title">Announcement Title</label><input id="announcement-title" className="form-input" required maxLength={500} name="title" value={form.title} onChange={change} placeholder="Enter announcement title" /></div>
-        {form.announcement_type === 'category' && <div className="form-group"><label className="form-label" htmlFor="announcement-category">Announcement Category</label><select id="announcement-category" className="form-input" required name="announcement_category_id" value={form.announcement_category_id} onChange={change}><option value="">Select a category</option>{categories.filter(cat => cat.status === 'active' || cat._id === form.announcement_category_id).map(cat => <option key={cat._id} value={cat._id}>{cat.name}{cat.status === 'inactive' ? ' (Inactive)' : ''}</option>)}</select></div>}
+        {form.announcement_type !== 'marquee' && <div className="form-group"><label className="form-label" htmlFor="announcement-category">Announcement Category</label><select id="announcement-category" className="form-input" required name="announcement_category_id" value={form.announcement_category_id} onChange={change}><option value="">Select a category</option>{categories.filter(cat => cat.status === 'active' || cat._id === form.announcement_category_id).map(cat => <option key={cat._id} value={cat._id}>{cat.name}{cat.status === 'inactive' ? ' (Inactive)' : ''}</option>)}</select></div>}
         <div className="form-group"><label className="form-label" htmlFor="announcement-url">Announcement URL</label><input id="announcement-url" className="form-input" required name="url" placeholder="https://example.com or /admission" value={form.url} onChange={change} /></div>
         <div className="form-group"><label className="form-label" htmlFor="announcement-publish">Publish Date</label><input id="announcement-publish" className="form-input" required type="date" name="publish_date" value={form.publish_date} onChange={change} /></div>
 

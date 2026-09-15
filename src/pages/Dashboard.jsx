@@ -1,3 +1,4 @@
+import TableTopHeader from '../components/common/TableTopHeader';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Building, FileText, Activity, RefreshCw, ArrowRight } from 'lucide-react';
@@ -167,7 +168,8 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
-            <table className="data-table">
+            <TableTopHeader totalItems={logs.length} currentPage={1} itemsPerPage={logs.length} />
+          <table className="data-table">
               <thead>
                 <tr>
                   <th>User</th>

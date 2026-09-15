@@ -1,3 +1,4 @@
+import TableTopHeader from '../components/common/TableTopHeader';
 import { useEffect, useMemo, useState } from 'react';
 import { Edit2, RefreshCw, Shield, Users as UsersIcon } from 'lucide-react';
 import { getUsers, updateUser } from '../api/auth';
@@ -96,6 +97,7 @@ export default function UserManagement() {
           </div>
         </div>
         <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
+          <TableTopHeader totalItems={totalItems} currentPage={safeCurrentPage} itemsPerPage={itemsPerPage} />
           <table className="data-table">
             <thead>
               <tr>

@@ -716,3 +716,5 @@ body {
   animation: fadeIn 0.4s ease forwards;
 
 }
+.tab-row-count { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; padding: 2px 8px; margin-left: 5px; border-radius: 999px; font-size: 11px; line-height: 18px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--primary-blue-light, #eff6ff); color: var(--primary-blue, #2563eb); border: 1px solid #bfdbfe; vertical-align: middle; }
+.nav-item.active .tab-row-count { background: rgba(255,255,255,.2); border-color: currentColor; color: inherit; }

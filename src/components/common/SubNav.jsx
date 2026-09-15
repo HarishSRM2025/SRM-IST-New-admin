@@ -1,3 +1,4 @@
+import TabRowCount from './TabRowCount';
 import { NavLink } from 'react-router-dom';
 
 const SubNav = ({ tabs }) => {
@@ -26,7 +27,7 @@ const SubNav = ({ tabs }) => {
           })}
           end={tab.end}
         >
-          {tab.label}
+          {tab.label} <TabRowCount path={tab.path} />
         </NavLink>
       ))}
     </div>

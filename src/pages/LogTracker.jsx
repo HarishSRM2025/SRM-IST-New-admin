@@ -1,3 +1,4 @@
+import TableTopHeader from '../components/common/TableTopHeader';
 import { useEffect, useMemo, useState } from 'react';
 import { FilterX, Loader2, RefreshCw, Search, Shield } from 'lucide-react';
 import { getAuditLogs, getUsers } from '../api/auth';
@@ -231,6 +232,7 @@ export default function LogTracker() {
           </div>
         </div>
         <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
+          <TableTopHeader totalItems={filteredLogs.length} currentPage={safeCurrentPage} itemsPerPage={pageSize} />
           <table className="data-table">
             <thead>
               <tr>

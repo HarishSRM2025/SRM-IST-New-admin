@@ -198,7 +198,12 @@ function App() {
       Object.entries(sessionHeaders).forEach(([key, value]) => {
         if (value) headers.set(key, value);
       });
-      return originalFetch(input, { ...init, headers });
+      return originalFetch(input, { ...init, headers }).then(response => {
+        if (response.ok && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(init.method || 'GET').toUpperCase())) {
+          window.dispatchEvent(new Event('admin-records-changed'));
+        }
+        return response;
+      });
     };
 
     return () => {

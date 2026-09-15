@@ -1,3 +1,4 @@
+import TableTopHeader from '../components/common/TableTopHeader';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Copy, Check, Edit2, Loader2, Plus, RefreshCw, Save, Users as UsersIcon, X } from 'lucide-react';
@@ -237,6 +238,7 @@ export default function CoordinatorManagement() {
           </div>
         </div>
         <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
+          <TableTopHeader totalItems={totalItems} currentPage={safeCurrentPage} itemsPerPage={itemsPerPage} />
           <table className="data-table">
             <thead>
               <tr>

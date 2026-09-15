@@ -1,3 +1,4 @@
+import TableTopHeader from '../components/common/TableTopHeader';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BriefcaseBusiness, Download, Edit2, FileText, Loader2, Plus, RefreshCw, Trash2, X } from 'lucide-react';
@@ -214,7 +215,7 @@ export default function CareersManagement() {
           </div>
           <div className="card-actions">
             <button className={`btn ${activeTab === 'careers' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('careers')}>
-              Postings
+              Postings <span className="tab-row-count">{careers.length}</span>
             </button>
             <button className={`btn ${activeTab === 'applications' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setActiveTab('applications')}>
               Applications <span className="badge-light">{applications.length}</span>
@@ -232,7 +233,8 @@ export default function CareersManagement() {
         {activeTab === 'careers' ? (
           <>
           <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
-            <table className="data-table">
+            <TableTopHeader totalItems={activeItems.length} currentPage={safeCurrentPage} itemsPerPage={itemsPerPage} />
+          <table className="data-table">
               <thead>
                 <tr>
                   <th>Title</th>
@@ -275,7 +277,8 @@ export default function CareersManagement() {
         ) : (
           <>
           <div className="table-container" style={{ border: 'none', borderRadius: 0, boxShadow: 'none' }}>
-            <table className="data-table">
+            <TableTopHeader totalItems={activeItems.length} currentPage={safeCurrentPage} itemsPerPage={itemsPerPage} />
+          <table className="data-table">
               <thead>
                 <tr>
                   <th>Applicant</th>
